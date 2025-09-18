@@ -18,7 +18,7 @@ body {
     color: #333;
     margin-bottom: 20px;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-    animation: fadeInTitle 2s ease-in;
+    animation: fadeInTitle 1s ease-in;
 }
 @keyframes fadeInTitle {
     from { opacity: 0; transform: translateY(-20px); }   
@@ -31,7 +31,7 @@ body {
     max-width: 95%;
     margin: 0 auto;
     overflow-x: auto;
-    animation: fadeInGallery 2s ease-in 0.5s both;
+    animation: fadeInGallery 2s ease-in 0.2s both;
 }
 @keyframes fadeInGallery {
     from { opacity: 0; transform: translateY(20px); }
@@ -122,6 +122,7 @@ img {
 .nav {
     text-align: center;
     margin-bottom: 20px;
+    font-size: 25px;
 }
 
 .nav a {
@@ -152,17 +153,18 @@ img {
 .contact {
     max-width: 600px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 100px;
     background-color: rgba(255, 255, 255, 0.9);
-    border-radius: 10px;
+    border-radius: 50px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     animation: fadeInGallery 2s ease-in 0.5s both;
 }
 
 .contact h2 {
+    font-size: 50px;
     text-align: center;
     color: #333;
-    margin-bottom: 20px;
+    margin-bottom: 5px;
 }
 
 form {
@@ -220,4 +222,12 @@ button[type="submit"]:active {
     flex-wrap: wrap;
     gap: 20px;
     justify-content: center;
+}
+
+.navbar {
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 10px 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
 }

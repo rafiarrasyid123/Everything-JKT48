@@ -272,7 +272,7 @@ class AuthSystem {
             messageDiv.className = 'message success';
             messageDiv.textContent = result.message;
             setTimeout(() => {
-                window.location.href = 'index.html';
+                window.location.href = 'home.html';
             }, 1000);
         } else {
             messageDiv.className = 'message error';

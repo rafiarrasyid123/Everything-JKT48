@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title> Mikaela </title>
+    <link rel="stylesheet" href="mikaela.css" />
+    <style>
+        /* Sync Status Styles */
+        .sync-status-section {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            width: 350px;
+            z-index: 1000;
+            animation: slideInRight 0.3s ease;
+        }
+
+        .sync-status-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+            border: 2px solid #28a745;
+        }
+
+        .sync-header {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sync-header h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .sync-toggle-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: background 0.3s ease;
+        }
+
+        .sync-toggle-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .sync-content {
+            padding: 20px;
+        }
+
+        .sync-info {
+            margin-bottom: 20px;
+        }
+
+        .sync-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .sync-item:last-child {
+            border-bottom: none;
+        }
+
+        .sync-label {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .sync-value {
+            color: #666;
+            font-size: 13px;
+            text-align: right;
+        }
+
+        .sync-value.success {
+            color: #28a745;
+        }
+
+        .sync-value.error {
+            color: #dc3545;
+        }
+
+        .sync-value.warning {
+            color: #ffc107;
+        }
+
+        .sync-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40,167,69,0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .sync-toggle-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 999;
+        }
+
+        .sync-toggle-main-btn {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(40,167,69,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .sync-toggle-main-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40,167,69,0.4);
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        .sync-status-section.hidden {
+            animation: slideOutRight 0.3s ease;
+        }
+
+        /* Loading spinner */
+        .sync-spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #28a745;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sync-status-section {
+                width: calc(100vw - 40px);
+                right: 20px;
+                left: 20px;
+            }
+
+            .sync-toggle-container {
+                top: 10px;
+                right: 10px;
+            }
+
+            .sync-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+    <script src="auth.js"></script>
+    <script>
+        // Cek status login saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', function() {
+            // Cek apakah user sudah login
+            const currentUser = localStorage.getItem('mikaela_current_user');
+            if (!currentUser) {
+                // Redirect ke login jika belum login
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Parse user data
+            try {
+                const user = JSON.parse(currentUser);
+                console.log('User logged in:', user.username);
+
+                // Update nav dengan info user
+                const nav = document.querySelector('.nav');
+                if (nav && user.role === 'admin') {
+                    nav.innerHTML = `
+                        <a href="home-auto.html">Beranda</a>
+                        <a href="about.html">Bio Mikaela</a>
+                        <a href="everything.html">Everything</a>
+                        <a href="List.html">Saluran Everything JKT48</a>
+                        <a href="admin.html" style="color: #ff6b6b; font-weight: bold;">🔐 Admin Panel</a>
+                        <span style="margin-left: auto; color: #28a745;">👤 ${user.username}</span>
+
+                    `;
+                } else if (nav) {
+                    nav.innerHTML = `
+                        <a href="home-auto.html">Beranda</a>
+                        <a href="about.html">Bio Mikaela</a>
+                        <a href="everything.html">Everything</a>
+                        <a href="List.html">Saluran Everything JKT48</a>
+                        <span style="margin-left: auto; color: #007bff;">👤 ${user.username}</span>
+
+                    `;
+                }
+            } catch (e) {
+                console.error('Error parsing user data:', e);
+                window.location.href = 'login.html';
+            }
+        });
+
+        // Fungsi logout
+        function logout() {
+            localStorage.removeItem('mikaela_current_user');
+            window.location.href = 'login.html';
+        }
+    </script>
+</head>
+<body>
+    <nav class="nav">
+        <a href="home-auto.html">Beranda</a>
+        <a href="about.html"> Bio Mikaela </a>
+        <a href="everything.html"> Everything </a>
+        <a href ="List.html"> Saluran Everything JKT48 </a>
+
+    </nav>
+
+    <h1 class="title">Foto Lucu Mikaela</h1>
+
+    <!-- Sync Status Section -->
+    <div class="sync-status-section" id="syncStatusSection" style="display: none;">
+        <div class="sync-status-card">
+            <div class="sync-header">
+                <h3>🔄 Auto-Sync Status</h3>
+                <button onclick="toggleSyncSection()" class="sync-toggle-btn">✕</button>
+            </div>
+            <div class="sync-content">
+                <div class="sync-info">
+                    <div class="sync-item">
+                        <span class="sync-label">Status:</span>
+                        <span id="syncStatus" class="sync-value">Memeriksa...</span>
+                    </div>
+                    <div class="sync-item">
+                        <span class="sync-label">Terakhir Sync:</span>
+                        <span id="lastSyncTime" class="sync-value">-</span>
+                    </div>
+                    <div class="sync-item">
+                        <span class="sync-label">Device Saat Ini:</span>
+                        <span id="currentDevice" class="sync-value">-</span>
+                    </div>
+                    <div class="sync-item">
+                        <span class="sync-label">Storage:</span>
+                        <span id="storageType" class="sync-value success">localStorage</span>
+                    </div>
+                </div>
+                <div class="sync-actions">
+                    <button onclick="manualSync()" id="manualSyncBtn" class="btn btn-primary">
+                        🔄 Sync Sekarang
+                    </button>
+                    <button onclick="exportAccountData()" class="btn btn-secondary">
+                        💾 Export Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sync Toggle Button -->
+    <div class="sync-toggle-container">
+        <button onclick="toggleSyncSection()" id="syncToggleBtn" class="sync-toggle-main-btn">
+            🔄 Auto-Sync
+        </button>
+    </div>
+
+    <div class="gallery">
+        <div class="container" tabindex="0" aria-label="Gambar Mikaela dengan teks overlay Cewek Gw">
+            <img src="Gambar/Mikaela.jpg" alt="Cewek Gw" />
+            <div class="text-overlay"></div>
+        </div>
+        <div class="container" tabindex="0" aria-label="Gambar tambahan Mikaela">
+            <img src="Gambar/b81d7565-657e-42de-b5ee-1672ce607130.jpg" alt="Foto tambahan Mikaela" />
+            <div class="text-overlay"></div>
+        </div>
+        <div class="container" tabindex="0" aria-label="Gambar tambahan Mikaela">
+            <img src="Gambar/pokemon.jpg" alt="Foto tambahan Mikaela" />
+            <div class="text-overlay"></div>
+        </div>
+
+    </div>
+
+<div class="caption">Foto Mikaela yang Cantik dan menarik</div>
+<div class="note"> Mikaela Kusjanto Yang Imut Itu Milik Raffz</div>
+
+     <footer class="footer">
+        <p>&copy; 2024 Raffz. All rights reserved.</p>
+<footer class="Raffz">
+        <p>Created By Raffz</p>
+    </footer>
+
+    <script>
+        let syncStatusCheckInterval;
+
+        // Toggle sync status section
+        function toggleSyncSection() {
+            const section = document.getElementById('syncStatusSection');
+            const toggleBtn = document.getElementById('syncToggleBtn');
+
+            if (section.style.display === 'none' || section.style.display === '') {
+                section.style.display = 'block';
+                toggleBtn.textContent = '✕ Tutup Sync';
+                updateSyncStatus();
+                startSyncStatusMonitoring();
+            } else {
+                section.style.display = 'none';
+                toggleBtn.textContent = '🔄 Auto-Sync';
+                stopSyncStatusMonitoring();
+            }
+        }
+
+        // Update sync status display
+        async function updateSyncStatus() {
+            const syncStatus = document.getElementById('syncStatus');
+            const lastSyncTime = document.getElementById('lastSyncTime');
+            const currentDevice = document.getElementById('currentDevice');
+
+            try {
+                // Auto-sync is always available
+                syncStatus.textContent = '✅ Aktif';
+                syncStatus.className = 'sync-value success';
+
+                // Get sync metadata
+                const metadata = window.auth ? window.auth.getSyncMetadata() : null;
+                if (metadata && metadata.lastSyncTime) {
+                    const syncTime = new Date(metadata.lastSyncTime);
+                    lastSyncTime.textContent = formatTimeAgo(syncTime);
+                } else {
+                    lastSyncTime.textContent = 'Otomatis';
+                }
+
+                // Get device info
+                if (window.auth) {
+                    const device = window.auth.getCurrentDeviceInfo();
+                    if (device) {
+                        currentDevice.textContent = `${device.platform} (${device.browser})`;
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error updating sync status:', error);
+                syncStatus.textContent = '⚠️ Error';
+                syncStatus.className = 'sync-value warning';
+            }
+        }
+
+        // Manual sync function
+        async function manualSync() {
+            const syncBtn = document.getElementById('manualSyncBtn');
+            const originalText = syncBtn.textContent;
+
+            try {
+                syncBtn.textContent = '⏳ Syncing...';
+                syncBtn.disabled = true;
+
+                // Perform auto-sync operations
+                if (window.auth) {
+                    const authResult = await window.auth.syncWithLocalStorage();
+
+                    if (authResult.success) {
+                        window.auth.showNotification(`✅ ${authResult.message}`, 'success');
+                    } else {
+                        window.auth.showNotification(`❌ ${authResult.message}`, 'error');
+                    }
+                }
+
+                // Update status
+                await updateSyncStatus();
+
+            } catch (error) {
+                console.error('Auto-sync error:', error);
+                window.auth.showNotification('❌ Error saat auto-sync: ' + error.message, 'error');
+            } finally {
+                syncBtn.textContent = originalText;
+                syncBtn.disabled = false;
+            }
+        }
+
+        // Export account data
+        function exportAccountData() {
+            if (window.auth) {
+                const result = window.auth.exportUserData();
+                if (result.success) {
+                    window.auth.showNotification(result.message, 'success');
+                } else {
+                    window.auth.showNotification('Gagal export: ' + result.message, 'error');
+                }
+            }
+        }
+
+        // Format time ago
+        function formatTimeAgo(date) {
+            const now = new Date();
+            const diff = now - date;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+
+            if (days > 0) return `${days} hari lalu`;
+            if (hours > 0) return `${hours} jam lalu`;
+            if (minutes > 0) return `${minutes} menit lalu`;
+            return 'Baru saja';
+        }
+
+        // Start monitoring sync status
+        function startSyncStatusMonitoring() {
+            syncStatusCheckInterval = setInterval(updateSyncStatus, 30000); // Update every 30 seconds
+        }
+
+        // Stop monitoring sync status
+        function stopSyncStatusMonitoring() {
+            if (syncStatusCheckInterval) {
+                clearInterval(syncStatusCheckInterval);
+            }
+        }
+
+        // Initialize sync status when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait for auth system to be ready
+            setTimeout(() => {
+                updateSyncStatus();
+            }, 2000);
+        });
+
+        // Auto-sync when user logs in (always available)
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-sync is always available with localStorage
+            console.log('✅ Auto-sync system aktif dengan localStorage');
+
+            // Perform initial sync
+            if (window.auth) {
+                window.auth.syncWithLocalStorage().then(result => {
+                    if (result.success) {
+                        console.log('✅ Initial auto-sync completed:', result.message);
+                    }
+                }).catch(error => {
+                    console.log('⚠️ Initial auto-sync failed:', error);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

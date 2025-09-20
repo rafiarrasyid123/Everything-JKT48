@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Register - Mikaela</title>
+    <link rel="stylesheet" href="mikaela.css" />
+</head>
+<body>
+    <div class="register-container">
+        <div class="register-box">
+            <h1 class="register-title">Buat Akun Baru</h1>
+            <form id="registerForm" class="register-form">
+                <div class="form-group">
+                    <label for="regUsername">Username:</label>
+                    <input type="text" id="regUsername" name="username" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="regEmail">Email:</label>
+                    <input type="email" id="regEmail" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="regPassword">Password:</label>
+                    <input type="password" id="regPassword" name="password" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">Konfirmasi Password:</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required>
+                </div>
+
+                <button type="submit" class="register-btn">Daftar</button>
+            </form>
+
+            <div class="register-links">
+                <a href="login-auto.html" class="auth-link">Sudah Punya Akun?</a>
+            </div>
+
+            <div id="registerMessage" class="message"></div>
+        </div>
+    </div>
+
+    <script src="auth-fixed.js"></script>
+</body>
+</html>

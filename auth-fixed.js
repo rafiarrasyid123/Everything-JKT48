@@ -89,41 +89,6 @@ class AuthSystem {
         }
     }
 
-    // Load data dari GitHub
-    async loadFromGitHub() {
-        if (!window.githubAuth || !window.githubAuth.isAuthenticated()) {
-            console.log('GitHub auth not available, skipping load');
-            return { success: false, message: 'GitHub auth tidak tersedia' };
-        }
-
-        try {
-            console.log('Loading user data from GitHub...');
-
-            const githubData = await window.githubAuth.loadUserData();
-
-            if (githubData && githubData.users) {
-                // Merge dengan local data
-                const mergedUsers = this.mergeUserData(this.users, githubData.users);
-
-                this.users = mergedUsers;
-                this.saveUsers();
-
-                // Update sync metadata
-                this.updateSyncMetadata('github', githubData.metadata?.lastSync);
-
-                console.log('Successfully loaded from GitHub');
-                return { success: true, message: `Data berhasil dimuat dari GitHub (${githubData.users.length} users)` };
-            } else {
-                console.log('No data found on GitHub');
-                return { success: false, message: 'Tidak ada data di GitHub' };
-            }
-
-        } catch (error) {
-            console.error('GitHub load failed:', error);
-            return { success: false, message: 'Gagal memuat dari GitHub: ' + error.message };
-        }
-    }
-
     // Get current device info
     getCurrentDeviceInfo() {
         return {
@@ -141,40 +106,6 @@ class AuthSystem {
         };
     }
 
-    // Merge user data dari berbagai sumber
-    mergeUserData(localUsers, remoteUsers) {
-        const merged = [...localUsers];
-
-        remoteUsers.forEach(remoteUser => {
-            const existingIndex = merged.findIndex(localUser => localUser.id === remoteUser.id);
-
-            if (existingIndex >= 0) {
-                // User exists, compare timestamps
-                const localUser = merged[existingIndex];
-                const localUpdate = new Date(localUser.updatedAt);
-                const remoteUpdate = new Date(remoteUser.updatedAt);
-
-                if (remoteUpdate > localUpdate) {
-                    // Remote is newer, use remote data
-                    merged[existingIndex] = remoteUser;
-                    console.log(`Updated user ${remoteUser.username} from remote data`);
-                } else if (localUpdate > remoteUpdate) {
-                    // Local is newer, keep local data
-                    console.log(`Kept local data for user ${remoteUser.username}`);
-                } else {
-                    // Same timestamp, no conflict
-                    console.log(`No changes for user ${remoteUser.username}`);
-                }
-            } else {
-                // New user, add it
-                merged.push(remoteUser);
-                console.log(`Added new user ${remoteUser.username} from remote`);
-            }
-        });
-
-        return merged;
-    }
-
     // Update sync metadata
     updateSyncMetadata(source, timestamp) {
         const metadata = {
@@ -190,138 +121,6 @@ class AuthSystem {
     getSyncMetadata() {
         const metadata = localStorage.getItem('mikaela_sync_metadata');
         return metadata ? JSON.parse(metadata) : null;
-    }
-
-    // Alternative sync method - save to separate user files
-    async saveToUserFiles() {
-        try {
-            // Create individual files for each user (for cross-device compatibility)
-            this.users.forEach(user => {
-                const userData = {
-                    user: user,
-                    metadata: {
-                        version: "2.0",
-                        lastSync: new Date().toISOString(),
-                        description: "Individual user account data",
-                        device: navigator.userAgent
-                    }
-                };
-
-                const dataStr = JSON.stringify(userData, null, 2);
-                const dataBlob = new Blob([dataStr], {type: 'application/json'});
-
-                const url = URL.createObjectURL(dataBlob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `mikaela-user-${user.username}-${new Date().toISOString().split('T')[0]}.json`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
-            });
-
-            return { success: true, message: `Berhasil export ${this.users.length} file akun individual!` };
-        } catch (error) {
-            return { success: false, message: 'Gagal export file individual: ' + error.message };
-        }
-    }
-
-    // Load from individual user files
-    async loadFromUserFiles(files) {
-        try {
-            let importedCount = 0;
-            const combinedUsers = [...this.users];
-
-            for (const file of files) {
-                const text = await file.text();
-                const userData = JSON.parse(text);
-
-                if (userData.user && userData.user.id) {
-                    const existingIndex = combinedUsers.findIndex(u => u.id === userData.user.id);
-                    if (existingIndex >= 0) {
-                        combinedUsers[existingIndex] = userData.user;
-                    } else {
-                        combinedUsers.push(userData.user);
-                    }
-                    importedCount++;
-                }
-            }
-
-            this.users = combinedUsers;
-            this.saveUsers();
-
-            return { success: true, message: `Berhasil import ${importedCount} akun dari file individual!` };
-        } catch (error) {
-            return { success: false, message: 'Gagal import file individual: ' + error.message };
-        }
-    }
-
-    // Export user data untuk backup/manual sync
-    exportUserData() {
-        const exportData = {
-            users: this.users,
-            exportDate: new Date().toISOString(),
-            version: "2.0"
-        };
-
-        const dataStr = JSON.stringify(exportData, null, 2);
-        const dataBlob = new Blob([dataStr], {type: 'application/json'});
-
-        const url = URL.createObjectURL(dataBlob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `mikaela-users-backup-${new Date().toISOString().split('T')[0]}.json`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-
-        return { success: true, message: 'Data berhasil di-export!' };
-    }
-
-    // Import user data dari backup
-    importUserData(jsonData) {
-        try {
-            const importData = JSON.parse(jsonData);
-
-            if (importData.users && Array.isArray(importData.users)) {
-                // Merge dengan data existing
-                const combinedUsers = [...this.users];
-                importData.users.forEach(importUser => {
-                    const existingIndex = combinedUsers.findIndex(u => u.id === importUser.id);
-                    if (existingIndex >= 0) {
-                        combinedUsers[existingIndex] = importUser;
-                    } else {
-                        combinedUsers.push(importUser);
-                    }
-                });
-
-                this.users = combinedUsers;
-                this.saveUsers();
-
-                return { success: true, message: `Berhasil import ${importData.users.length} user!` };
-            } else {
-                return { success: false, message: 'Format data tidak valid!' };
-            }
-        } catch (error) {
-            return { success: false, message: 'Error parsing JSON: ' + error.message };
-        }
-    }
-
-    // Get current logged in user
-    getCurrentUser() {
-        const user = localStorage.getItem('mikaela_current_user');
-        return user ? JSON.parse(user) : null;
-    }
-
-    // Set current user
-    setCurrentUser(user) {
-        if (user) {
-            localStorage.setItem('mikaela_current_user', JSON.stringify(user));
-        } else {
-            localStorage.removeItem('mikaela_current_user');
-        }
-        this.currentUser = user;
     }
 
     // Hash password menggunakan base64 encoding
@@ -379,26 +178,20 @@ class AuthSystem {
         }
     }
 
-    // Reset password
-    resetPassword(email) {
-        const user = this.users.find(user => user.email === email);
+    // Get current logged in user
+    getCurrentUser() {
+        const user = localStorage.getItem('mikaela_current_user');
+        return user ? JSON.parse(user) : null;
+    }
+
+    // Set current user
+    setCurrentUser(user) {
         if (user) {
-            // Simulasi kirim email reset
-            return { success: true, message: 'Link reset password telah dikirim ke email Anda!' };
+            localStorage.setItem('mikaela_current_user', JSON.stringify(user));
         } else {
-            return { success: false, message: 'Email tidak ditemukan!' };
+            localStorage.removeItem('mikaela_current_user');
         }
-    }
-
-    // Logout
-    logout() {
-        this.setCurrentUser(null);
-        return { success: true, message: 'Logout berhasil!' };
-    }
-
-    // Check if user is logged in
-    isLoggedIn() {
-        return this.currentUser !== null;
+        this.currentUser = user;
     }
 
     // Initialize event listeners
@@ -421,15 +214,6 @@ class AuthSystem {
             });
         }
 
-        // Reset form
-        const resetForm = document.getElementById('resetForm');
-        if (resetForm) {
-            resetForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.handleReset();
-            });
-        }
-
         // Check login status on page load
         this.checkLoginStatus();
     }
@@ -445,8 +229,20 @@ class AuthSystem {
         if (result.success) {
             messageDiv.className = 'message success';
             messageDiv.textContent = result.message;
+
+            // Auto-sync after successful login
+            this.syncWithLocalStorage().then(syncResult => {
+                console.log('✅ Auto-sync after login:', syncResult.message);
+                if (syncResult.success) {
+                    this.showNotification('✅ Data berhasil di-sync otomatis', 'success');
+                }
+            }).catch(error => {
+                console.log('⚠️ Auto-sync after login failed:', error);
+                this.showNotification('⚠️ Auto-sync gagal, tapi login berhasil', 'success');
+            });
+
             setTimeout(() => {
-                window.location.href = 'home.html';
+                window.location.href = 'home-auto.html';
             }, 1000);
         } else {
             messageDiv.className = 'message error';
@@ -483,31 +279,12 @@ class AuthSystem {
         }
     }
 
-    // Handle reset form submission
-    handleReset() {
-        const email = document.getElementById('resetEmail').value;
-        const messageDiv = document.getElementById('resetMessage');
-
-        const result = this.resetPassword(email);
-
-        if (result.success) {
-            messageDiv.className = 'message success';
-            messageDiv.textContent = result.message;
-        } else {
-            messageDiv.className = 'message error';
-            messageDiv.textContent = result.message;
-        }
-    }
-
     // Check login status and redirect if needed
     checkLoginStatus() {
         // Jika di halaman home dan belum login, redirect ke login
         if (window.location.pathname.includes('home.html') && !this.isLoggedIn()) {
             window.location.href = 'index.html';
         }
-
-        // Jika di root domain (/), biarkan user di index.html (tidak redirect ke login)
-        // User bisa memilih untuk login atau register dari index.html
 
         // Update navigation
         this.updateNavigation();
@@ -534,57 +311,9 @@ class AuthSystem {
                 adminLink.textContent = '⚙️';
                 adminLink.title = 'Admin Panel - Akses Terbatas';
                 adminLink.style.fontSize = '16px';
-                adminLink.style.color = '#ff6b6b'; // Warna merah untuk menandai admin
+                adminLink.style.color = '#ff6b6b';
                 nav.appendChild(adminLink);
             }
-        }
-    }
-
-    // Handle export data dengan UI feedback
-    handleExportData() {
-        const result = this.exportUserData();
-        if (result.success) {
-            // Buat notifikasi sukses
-            this.showNotification(result.message, 'success');
-        } else {
-            this.showNotification('Gagal export data: ' + result.message, 'error');
-        }
-    }
-
-    // Handle import data dengan file picker
-    handleImportData() {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = '.json';
-        input.onchange = (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const result = this.importUserData(e.target.result);
-                    if (result.success) {
-                        this.showNotification(result.message, 'success');
-                        // Refresh halaman setelah import berhasil
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 1500);
-                    } else {
-                        this.showNotification('Gagal import data: ' + result.message, 'error');
-                    }
-                };
-                reader.readAsText(file);
-            }
-        };
-        input.click();
-    }
-
-    // Handle export individual files
-    handleExportIndividual() {
-        const result = this.saveToUserFiles();
-        if (result.success) {
-            this.showNotification(result.message, 'success');
-        } else {
-            this.showNotification('Gagal export individual: ' + result.message, 'error');
         }
     }
 

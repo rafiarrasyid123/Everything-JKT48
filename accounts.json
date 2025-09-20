@@ -2,58 +2,8 @@
   "users": [
     {
       "id": 1,
-      "username": "admin",
-      "email": "admin@mikaela.com",
-      "password": "YWRtaW4=",
-      "role": "admin",
-      "isActive": true,
-      "createdAt": "2024-01-01T00:00:00.000Z",
-      "updatedAt": "2024-01-01T00:00:00.000Z"
-    },
-    {
-      "id": 2,
-      "username": "user1",
-      "email": "user1@example.com",
-      "password": "dXNlcjE=",
-      "role": "user",
-      "isActive": true,
-      "createdAt": "2024-01-02T00:00:00.000Z",
-      "updatedAt": "2024-01-02T00:00:00.000Z"
-    },
-    {
-      "id": 3,
-      "username": "user2",
-      "email": "user2@example.com",
-      "password": "dXNlcjI=",
-      "role": "user",
-      "isActive": true,
-      "createdAt": "2024-01-03T00:00:00.000Z",
-      "updatedAt": "2024-01-03T00:00:00.000Z"
-    },
-    {
-      "id": 4,
-      "username": "testuser",
-      "email": "test@example.com",
-      "password": "dGVzdA==",
-      "role": "user",
-      "isActive": true,
-      "createdAt": "2024-01-04T00:00:00.000Z",
-      "updatedAt": "2024-01-04T00:00:00.000Z"
-    },
-    {
-      "id": 5,
-      "username": "admin123",
-      "email": "admin123@mikaela.com",
-      "password": "YWRtaW4xMjM=",
-      "role": "admin",
-      "isActive": true,
-      "createdAt": "2024-01-05T00:00:00.000Z",
-      "updatedAt": "2024-01-05T00:00:00.000Z"
-    },
-    {
-      "id": 6,
-      "username": "Raffzy",
-      "email": "raffzy@mikaela.com",
+      "username": "Raffzzy",
+      "email": "raffzzy@mikaela.com",
       "password": "UmFmaTEyMw==",
       "role": "admin",
       "isActive": true,

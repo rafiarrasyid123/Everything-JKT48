@@ -82,6 +82,70 @@ class AuthSystem {
         }
     }
 
+    // Alternative sync method - save to separate user files
+    async saveToUserFiles() {
+        try {
+            // Create individual files for each user (for cross-device compatibility)
+            this.users.forEach(user => {
+                const userData = {
+                    user: user,
+                    metadata: {
+                        version: "2.0",
+                        lastSync: new Date().toISOString(),
+                        description: "Individual user account data",
+                        device: navigator.userAgent
+                    }
+                };
+
+                const dataStr = JSON.stringify(userData, null, 2);
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
+
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `mikaela-user-${user.username}-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            });
+
+            return { success: true, message: `Berhasil export ${this.users.length} file akun individual!` };
+        } catch (error) {
+            return { success: false, message: 'Gagal export file individual: ' + error.message };
+        }
+    }
+
+    // Load from individual user files
+    async loadFromUserFiles(files) {
+        try {
+            let importedCount = 0;
+            const combinedUsers = [...this.users];
+
+            for (const file of files) {
+                const text = await file.text();
+                const userData = JSON.parse(text);
+
+                if (userData.user && userData.user.id) {
+                    const existingIndex = combinedUsers.findIndex(u => u.id === userData.user.id);
+                    if (existingIndex >= 0) {
+                        combinedUsers[existingIndex] = userData.user;
+                    } else {
+                        combinedUsers.push(userData.user);
+                    }
+                    importedCount++;
+                }
+            }
+
+            this.users = combinedUsers;
+            this.saveUsers();
+
+            return { success: true, message: `Berhasil import ${importedCount} akun dari file individual!` };
+        } catch (error) {
+            return { success: false, message: 'Gagal import file individual: ' + error.message };
+        }
+    }
+
     // Export user data untuk backup/manual sync
     exportUserData() {
         const exportData = {
@@ -301,7 +365,7 @@ class AuthSystem {
             messageDiv.className = 'message success';
             messageDiv.textContent = result.message;
             setTimeout(() => {
-                window.location.href = 'login.html';
+                window.location.href = 'index.html';
             }, 1500);
         } else {
             messageDiv.className = 'message error';
@@ -329,13 +393,11 @@ class AuthSystem {
     checkLoginStatus() {
         // Jika di halaman home dan belum login, redirect ke login
         if (window.location.pathname.includes('home.html') && !this.isLoggedIn()) {
-            window.location.href = 'login.html';
+            window.location.href = 'index.html';
         }
 
-        // Jika di root domain (/) dan belum login, redirect ke login
-        if (window.location.pathname === '/' && !this.isLoggedIn()) {
-            window.location.href = 'login.html';
-        }
+        // Jika di root domain (/), biarkan user di index.html (tidak redirect ke login)
+        // User bisa memilih untuk login atau register dari index.html
 
         // Update navigation
         this.updateNavigation();
@@ -351,14 +413,128 @@ class AuthSystem {
             logoutLink.textContent = 'Logout';
             logoutLink.onclick = () => {
                 this.logout();
-                window.location.href = 'login.html';
+                window.location.href = 'index.html';
             };
             nav.appendChild(logoutLink);
+
+            // Tambah link admin tersembunyi HANYA untuk role admin
+            if (this.currentUser && this.currentUser.role === 'admin') {
+                const adminLink = document.createElement('a');
+                adminLink.href = 'admin.html';
+                adminLink.textContent = '⚙️';
+                adminLink.title = 'Admin Panel - Akses Terbatas';
+                adminLink.style.fontSize = '16px';
+                adminLink.style.color = '#ff6b6b'; // Warna merah untuk menandai admin
+                nav.appendChild(adminLink);
+            }
         }
+    }
+
+    // Handle export data dengan UI feedback
+    handleExportData() {
+        const result = this.exportUserData();
+        if (result.success) {
+            // Buat notifikasi sukses
+            this.showNotification(result.message, 'success');
+        } else {
+            this.showNotification('Gagal export data: ' + result.message, 'error');
+        }
+    }
+
+    // Handle import data dengan file picker
+    handleImportData() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const result = this.importUserData(e.target.result);
+                    if (result.success) {
+                        this.showNotification(result.message, 'success');
+                        // Refresh halaman setelah import berhasil
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        this.showNotification('Gagal import data: ' + result.message, 'error');
+                    }
+                };
+                reader.readAsText(file);
+            }
+        };
+        input.click();
+    }
+
+    // Handle export individual files
+    handleExportIndividual() {
+        const result = this.saveToUserFiles();
+        if (result.success) {
+            this.showNotification(result.message, 'success');
+        } else {
+            this.showNotification('Gagal export individual: ' + result.message, 'error');
+        }
+    }
+
+    // Show notification untuk user feedback
+    showNotification(message, type) {
+        // Hapus notifikasi yang ada
+        const existingNotification = document.querySelector('.custom-notification');
+        if (existingNotification) {
+            existingNotification.remove();
+        }
+
+        // Buat notifikasi baru
+        const notification = document.createElement('div');
+        notification.className = `custom-notification ${type}`;
+        notification.textContent = message;
+
+        // Style notifikasi
+        Object.assign(notification.style, {
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            padding: '15px 20px',
+            borderRadius: '8px',
+            color: 'white',
+            fontWeight: 'bold',
+            zIndex: '10000',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            transform: 'translateX(100%)',
+            transition: 'transform 0.3s ease',
+            maxWidth: '300px',
+            wordWrap: 'break-word'
+        });
+
+        // Set warna berdasarkan type
+        if (type === 'success') {
+            notification.style.backgroundColor = '#28a745';
+        } else if (type === 'error') {
+            notification.style.backgroundColor = '#dc3545';
+        }
+
+        document.body.appendChild(notification);
+
+        // Animasi masuk
+        setTimeout(() => {
+            notification.style.transform = 'translateX(0)';
+        }, 100);
+
+        // Auto hide setelah 5 detik
+        setTimeout(() => {
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 300);
+        }, 5000);
     }
 }
 
 // Initialize auth system when page loads
 document.addEventListener('DOMContentLoaded', () => {
-    new AuthSystem();
+    window.auth = new AuthSystem();
 });

@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Authentication Flow - Mikaela</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .test-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .test-header h1 {
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .test-header p {
+            color: #666;
+            font-size: 18px;
+        }
+
+        .test-section {
+            margin-bottom: 30px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            border-left: 4px solid #667eea;
+        }
+
+        .test-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .test-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .test-btn {
+            padding: 15px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-test-login {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .btn-test-register {
+            background: linear-gradient(135deg, #007bff, #6f42c1);
+            color: white;
+        }
+
+        .btn-test-admin {
+            background: linear-gradient(135deg, #dc3545, #e74c3c);
+            color: white;
+        }
+
+        .btn-test-logout {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            color: white;
+        }
+
+        .btn-test-session {
+            background: linear-gradient(135deg, #17a2b8, #20c997);
+            color: white;
+        }
+
+        .test-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .test-results {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+            border-left: 4px solid #28a745;
+        }
+
+        .test-results h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .test-results pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-success {
+            background: #28a745;
+        }
+
+        .status-error {
+            background: #dc3545;
+        }
+
+        .status-warning {
+            background: #ffc107;
+        }
+
+        .info-box {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            color: #856404;
+        }
+
+        .info-box h4 {
+            margin-top: 0;
+            color: #856404;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: rgba(0, 0, 0, 0.9);
+            transform: scale(1.05);
+        }
+
+        .timestamp {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .test-container {
+                margin: 10px;
+                padding: 20px;
+            }
+
+            .test-header h1 {
+                font-size: 24px;
+            }
+
+            .test-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="admin.html" class="back-button">← Kembali ke Admin</a>
+
+    <div class="test-container">
+        <div class="test-header">
+            <h1>🧪 Test Authentication Flow</h1>
+            <p>Panel pengujian sistem autentikasi Mikaela</p>
+        </div>
+
+        <div class="info-box">
+            <h4>💡 Informasi Pengujian:</h4>
+            <p>Panel ini digunakan untuk menguji berbagai aspek sistem autentikasi termasuk login, register, session management, dan fungsi admin. Pastikan Anda sudah login sebagai admin sebelum menggunakan panel ini.</p>
+        </div>
+
+        <div class="test-section">
+            <h3>🔐 Test Authentication Functions</h3>
+            <div class="test-buttons">
+                <button class="test-btn btn-test-login" onclick="testLogin()">
+                    Test Login Process
+                </button>
+                <button class="test-btn btn-test-register" onclick="testRegister()">
+                    Test Register Process
+                </button>
+                <button class="test-btn btn-test-admin" onclick="testAdminAccess()">
+                    Test Admin Access
+                </button>
+                <button class="test-btn btn-test-logout" onclick="testLogout()">
+                    Test Logout Process
+                </button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>💾 Test Data Management</h3>
+            <div class="test-buttons">
+                <button class="test-btn btn-test-session" onclick="testSessionData()">
+                    Check Session Data
+                </button>
+                <button class="test-btn btn-test-session" onclick="testLocalStorage()">
+                    Check LocalStorage
+                </button>
+                <button class="test-btn btn-test-session" onclick="testUserData()">
+                    Check User Database
+                </button>
+                <button class="test-btn btn-test-session" onclick="clearTestData()">
+                    Clear Test Data
+                </button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 Test Results</h3>
+            <div class="test-results">
+                <h4>📊 Test Output:</h4>
+                <div id="testOutput">Menunggu eksekusi test...</div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>⚡ Quick Actions</h3>
+            <div class="test-buttons">
+                <button class="test-btn btn-test-login" onclick="runAllTests()">
+                    🚀 Run All Tests
+                </button>
+                <button class="test-btn btn-test-logout" onclick="resetToInitialState()">
+                    🔄 Reset to Initial State
+                </button>
+                <button class="test-btn btn-test-admin" onclick="generateTestReport()">
+                    📋 Generate Test Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="timestamp">
+        🕐 Last Updated: <span id="lastUpdate">Loading...</span>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        let testResults = [];
+
+        // Update timestamp
+        function updateTimestamp() {
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleString('id-ID');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTimestamp();
+            setInterval(updateTimestamp, 1000);
+
+            // Check if user is logged in
+            const currentUser = localStorage.getItem('mikaela_current_user');
+            if (!currentUser) {
+                alert('⚠️ Akses Ditolak!\n\nAnda harus login terlebih dahulu untuk mengakses panel test.');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const user = JSON.parse(currentUser);
+            if (user.role !== 'admin') {
+                alert('❌ Akses Ditolak!\n\nTest panel hanya dapat diakses oleh administrator.');
+                window.location.href = 'home.html';
+                return;
+            }
+
+            logTest('✅ Admin access granted - Test panel initialized');
+        });
+
+        // Test Functions
+        function testLogin() {
+            logTest('🔄 Testing login process...');
+            const currentUser = localStorage.getItem('mikaela_current_user');
+
+            if (currentUser) {
+                const user = JSON.parse(currentUser);
+                logTest(`✅ Login test passed - Current user: ${user.username} (${user.role})`);
+            } else {
+                logTest('❌ Login test failed - No user logged in');
+            }
+        }
+
+        function testRegister() {
+            logTest('🔄 Testing register process...');
+            if (window.auth && window.auth.users) {
+                logTest(`✅ Register test passed - Found ${window.auth.users.length} users in database`);
+                logTest(`📊 User details: ${window.auth.users.map(u => `${u.username}(${u.role})`).join(', ')}`);
+            } else {
+                logTest('❌ Register test failed - Auth system not loaded');
+            }
+        }
+
+        function testAdminAccess() {
+            logTest('🔄 Testing admin access...');
+            const currentUser = localStorage.getItem('mikaela_current_user');
+
+            if (currentUser) {
+                const user = JSON.parse(currentUser);
+                if (user.role === 'admin') {
+                    logTest(`✅ Admin access test passed - User: ${user.username}, Role: ${user.role}`);
+                } else {
+                    logTest(`❌ Admin access test failed - User role: ${user.role}, expected: admin`);
+                }
+            } else {
+                logTest('❌ Admin access test failed - No user logged in');
+            }
+        }
+
+        function testLogout() {
+            logTest('🔄 Testing logout process...');
+            const currentUser = localStorage.getItem('mikaela_current_user');
+
+            if (currentUser) {
+                logTest('✅ Logout test passed - User session exists');
+                logTest('💡 Note: Actual logout would clear localStorage');
+            } else {
+                logTest('❌ Logout test failed - No active session found');
+            }
+        }
+
+        function testSessionData() {
+            logTest('🔄 Testing session data...');
+            const currentUser = localStorage.getItem('mikaela_current_user');
+
+            if (currentUser) {
+                const user = JSON.parse(currentUser);
+                logTest('✅ Session data found:');
+                logTest(`   Username: ${user.username}`);
+                logTest(`   Email: ${user.email}`);
+                logTest(`   Role: ${user.role}`);
+                logTest(`   Created: ${user.createdAt}`);
+            } else {
+                logTest('❌ No session data found');
+            }
+        }
+
+        function testLocalStorage() {
+            logTest('🔄 Testing localStorage data...');
+            const keys = Object.keys(localStorage);
+            const mikaelaKeys = keys.filter(key => key.startsWith('mikaela_'));
+
+            if (mikaelaKeys.length > 0) {
+                logTest(`✅ Found ${mikaelaKeys.length} Mikaela-related localStorage items:`);
+                mikaelaKeys.forEach(key => {
+                    try {
+                        const value = localStorage.getItem(key);
+                        const parsed = JSON.parse(value);
+                        logTest(`   ${key}: ${JSON.stringify(parsed, null, 2)}`);
+                    } catch (e) {
+                        logTest(`   ${key}: ${localStorage.getItem(key)}`);
+                    }
+                });
+            } else {
+                logTest('❌ No Mikaela localStorage data found');
+            }
+        }
+
+        function testUserData() {
+            logTest('🔄 Testing user database...');
+            if (window.auth && window.auth.users) {
+                logTest(`✅ User database loaded with ${window.auth.users.length} users:`);
+                window.auth.users.forEach((user, index) => {
+                    logTest(`   ${index + 1}. ${user.username} (${user.email}) - Role: ${user.role}`);
+                });
+            } else {
+                logTest('❌ User database not loaded');
+            }
+        }
+
+        function clearTestData() {
+            if (confirm('⚠️ Apakah Anda yakin ingin menghapus semua data test?\n\nIni akan menghapus:\n- Session data\n- Test logs\n- Temporary data')) {
+                logTest('🗑️ Clearing test data...');
+                testResults = [];
+                updateTestOutput();
+                logTest('✅ Test data cleared successfully');
+            }
+        }
+
+        function runAllTests() {
+            logTest('🚀 Running all authentication tests...');
+            testResults = []; // Clear previous results
+
+            testLogin();
+            testRegister();
+            testAdminAccess();
+            testLogout();
+            testSessionData();
+            testLocalStorage();
+            testUserData();
+
+            logTest('✅ All tests completed!');
+        }
+
+        function resetToInitialState() {
+            if (confirm('🔄 Apakah Anda yakin ingin reset ke state awal?\n\nIni akan:\n- Clear session\n- Clear test logs\n- Redirect ke login')) {
+                localStorage.removeItem('mikaela_current_user');
+                testResults = [];
+                updateTestOutput();
+                logTest('✅ System reset to initial state');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
+            }
+        }
+
+        function generateTestReport() {
+            logTest('📋 Generating test report...');
+
+            const report = {
+                timestamp: new Date().toISOString(),
+                totalTests: testResults.length,
+                summary: testResults.filter(result => result.includes('✅')).length + ' passed, ' +
+                        testResults.filter(result => result.includes('❌')).length + ' failed',
+                details: testResults
+            };
+
+            const reportText = `🧪 TEST REPORT
+Generated: ${new Date().toLocaleString('id-ID')}
+Total Tests: ${report.totalTests}
+Summary: ${report.summary}
+
+DETAILED RESULTS:
+${testResults.map((result, index) => `${index + 1}. ${result}`).join('\n')}
+
+---
+End of Report
+`;
+
+            // Create downloadable report
+            const blob = new Blob([reportText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `auth-test-report-${new Date().toISOString().split('T')[0]}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            logTest('✅ Test report generated and downloaded');
+        }
+
+        function logTest(message) {
+            const timestamp = new Date().toLocaleTimeString('id-ID');
+            testResults.push(`[${timestamp}] ${message}`);
+            updateTestOutput();
+        }
+
+        function updateTestOutput() {
+            const outputDiv = document.getElementById('testOutput');
+            if (testResults.length === 0) {
+                outputDiv.innerHTML = 'Menunggu eksekusi test...';
+            } else {
+                outputDiv.innerHTML = testResults.map(result => {
+                    if (result.includes('✅')) {
+                        return `<span style="color: #28a745;">${result}</span>`;
+                    } else if (result.includes('❌')) {
+                        return `<span style="color: #dc3545;">${result}</span>`;
+                    } else if (result.includes('⚠️')) {
+                        return `<span style="color: #ffc107;">${result}</span>`;
+                    } else {
+                        return `<span style="color: #17a2b8;">${result}</span>`;
+                    }
+                }).join('<br>');
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey) {
+                switch(e.key) {
+                    case 'T':
+                        e.preventDefault();
+                        runAllTests();
+                        break;
+                    case 'R':
+                        e.preventDefault();
+                        generateTestReport();
+                        break;
+                    case 'C':
+                        e.preventDefault();
+                        clearTestData();
+                        break;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

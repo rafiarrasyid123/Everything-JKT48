@@ -6,6 +6,56 @@
     <title> Mikaela </title>
     <link rel="stylesheet" href="mikaela.css" />
     <script src="auth.js"></script>
+    <script>
+        // Cek status login saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', function() {
+            // Cek apakah user sudah login
+            const currentUser = localStorage.getItem('mikaela_current_user');
+            if (!currentUser) {
+                // Redirect ke login jika belum login
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Parse user data
+            try {
+                const user = JSON.parse(currentUser);
+                console.log('User logged in:', user.username);
+
+                // Update nav dengan info user
+                const nav = document.querySelector('.nav');
+                if (nav && user.role === 'admin') {
+                    nav.innerHTML = `
+                        <a href="home.html">Beranda</a>
+                        <a href="about.html">Bio Mikaela</a>
+                        <a href="everything.html">Everything</a>
+                        <a href="List.html">Saluran Everything JKT48</a>
+                        <a href="admin.html" style="color: #ff6b6b; font-weight: bold;">🔐 Admin Panel</a>
+                        <span style="margin-left: auto; color: #28a745;">👤 ${user.username}</span>
+                       
+                    `;
+                } else if (nav) {
+                    nav.innerHTML = `
+                        <a href="home.html">Beranda</a>
+                        <a href="about.html">Bio Mikaela</a>
+                        <a href="everything.html">Everything</a>
+                        <a href="List.html">Saluran Everything JKT48</a>
+                        <span style="margin-left: auto; color: #007bff;">👤 ${user.username}</span>
+                        
+                    `;
+                }
+            } catch (e) {
+                console.error('Error parsing user data:', e);
+                window.location.href = 'login.html';
+            }
+        });
+
+        // Fungsi logout
+        function logout() {
+            localStorage.removeItem('mikaela_current_user');
+            window.location.href = 'login.html';
+        }
+    </script>
 </head>
 <body>
     <nav class="nav">

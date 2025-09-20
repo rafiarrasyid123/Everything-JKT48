@@ -1,0 +1,755 @@
+v <!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Mikaela</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .admin-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .admin-header {
+            margin-bottom: 30px;
+        }
+
+        .admin-header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .admin-header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 25px;
+            color: #856404;
+            font-size: 14px;
+        }
+
+        .admin-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .admin-btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+    
+        .admin-web {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-backup {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .btn-backup:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn-export {
+            background: linear-gradient(135deg, #007bff, #6f42c1);
+            color: white;
+        }
+
+        .btn-export:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4);
+        }
+
+        .btn-restore {
+            background: linear-gradient(135deg, #ffc107, #fd7e14);
+            color: #212529;
+        }
+
+        .btn-restore:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4);
+        }
+
+        .btn-users {
+            background: linear-gradient(135deg, #17a2b8, #20c997);
+            color: white;
+        }
+
+        .btn-users:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(23, 162, 184, 0.4);
+        }
+
+        .Web-site {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            margin-top: 10px;
+        }
+
+        .Web-site:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 93, 69, 0.4);
+        }
+        
+        .btn-back {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            margin-top: 10px;
+        }
+
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+        }
+
+        .info-box {
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 25px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-box h4 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .info-box ul {
+            text-align: left;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .info-box li {
+            margin: 5px 0;
+        }
+
+        .security-notice {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        @media (max-width: 600px) {
+            .admin-container {
+                margin: 20px;
+                padding: 30px 20px;
+            }
+
+            .admin-header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1>🔐 Admin Panel</h1>
+            <p>Backup & Restore Akun Mikaela</p>
+        </div>
+
+        <div class="warning-box">
+            ⚠️ <strong>Peringatan:</strong> Halaman admin ini tersembunyi. Gunakan dengan hati-hati untuk menghindari kehilangan data.
+        </div>
+
+        <div class="admin-buttons">
+            <button class="admin-btn btn-backup" onclick="handleBackup()">
+                💾 Backup Semua Akun
+            </button>
+
+            <button class="admin-btn btn-export" onclick="handleExportIndividual()">
+                📦 Export Individual Files
+            </button>
+
+            <button class="admin-btn btn-restore" onclick="handleRestore()">
+                📁 Restore dari Backup
+            </button>
+
+            <button class="admin-btn btn-users" onclick="showUserList()">
+                👥 Lihat Daftar User
+            </button>
+
+            <button class="admin-btn btn-user-details" onclick="showUserDetails()" style="background: linear-gradient(135deg, #6f42c1, #e83e8c); color: white;">
+                🔍 Lihat Detail Akun & Password
+            </button>
+
+            <button class="admin-btn btn-add-admin" onclick="showAddAdminForm()" style="background: linear-gradient(135deg, #e74c3c, #c0392b); color: white;">
+                👤+ Tambah Admin Baru
+            </button>
+
+            <a href="test_auth_flow.html"class= "Admin-Web Web-site">
+                🧪 Tes Alur Otentikasi
+            </a>
+
+            <a href="home.html" class="admin-btn btn-back">
+                ← Kembali ke Home
+            </a>
+        </div>
+
+        <div class="info-box">
+            <h4>💡 Informasi Penting:</h4>
+            <ul>
+                <li>• Backup berkala untuk keamanan data</li>
+                <li>• File backup kompatibel antar device</li>
+                <li>• Password tersimpan dalam format base64</li>
+                <li>• Data tersimpan di localStorage browser</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="security-notice">
+        🔒 Admin Panel - Akses Terbatas
+    </div>
+
+    <!-- Load admin.js untuk fungsi backup/restore -->
+    <script src="admin.js"></script>
+    <script src="auth.js"></script>
+
+    <script>
+        // Global variable untuk tracking loading state
+        let authSystemReady = false;
+
+        // Override AuthSystem constructor untuk tracking
+        const originalAuthSystem = AuthSystem;
+        AuthSystem = function() {
+            const auth = new originalAuthSystem();
+            auth.initializeAuth().then(() => {
+                authSystemReady = true;
+                console.log('✅ Auth system fully loaded with', auth.users.length, 'users');
+            });
+            return auth;
+        };
+        // Fungsi untuk menangani backup
+        function handleBackup() {
+            if (window.auth) {
+                const result = window.auth.exportUserData();
+                if (result.success) {
+                    showNotification(result.message, 'success');
+                } else {
+                    showNotification('Gagal export data: ' + result.message, 'error');
+                }
+            } else {
+                showNotification('Sistem auth belum siap', 'error');
+            }
+        }
+
+        // Fungsi untuk menangani export individual
+        function handleExportIndividual() {
+            if (window.auth) {
+                const result = window.auth.saveToUserFiles();
+                if (result.success) {
+                    showNotification(result.message, 'success');
+                } else {
+                    showNotification('Gagal export individual: ' + result.message, 'error');
+                }
+            } else {
+                showNotification('Sistem auth belum siap', 'error');
+            }
+        }
+
+        // Fungsi untuk menangani restore
+        function handleRestore() {
+            if (window.auth) {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json';
+                input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            const result = window.auth.importUserData(e.target.result);
+                            if (result.success) {
+                                showNotification(result.message, 'success');
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 1500);
+                            } else {
+                                showNotification('Gagal import data: ' + result.message, 'error');
+                            }
+                        };
+                        reader.readAsText(file);
+                    }
+                };
+                input.click();
+            } else {
+                showNotification('Sistem auth belum siap', 'error');
+            }
+        }
+
+        // Fungsi untuk menampilkan form tambah admin
+        function showAddAdminForm() {
+            const formPanel = document.createElement('div');
+            formPanel.className = 'add-admin-panel';
+            formPanel.innerHTML = `
+                <div style="
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: white;
+                    border: 2px solid #e74c3c;
+                    border-radius: 15px;
+                    padding: 30px;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                    z-index: 10002;
+                    max-width: 450px;
+                    width: 90%;
+                ">
+                    <h3 style="margin-top: 0; color: #e74c3c; text-align: center;">👤+ Tambah Admin Baru</h3>
+
+                    <form id="addAdminForm" style="display: flex; flex-direction: column; gap: 15px;">
+                        <div style="text-align: left;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">Username:</label>
+                            <input type="text" id="newAdminUsername" placeholder="Masukkan username admin baru" required style="
+                                width: 100%;
+                                padding: 10px;
+                                border: 2px solid #ddd;
+                                border-radius: 8px;
+                                font-size: 14px;
+                            ">
+                        </div>
+
+                        <div style="text-align: left;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">Email:</label>
+                            <input type="email" id="newAdminEmail" placeholder="Masukkan email admin baru" required style="
+                                width: 100%;
+                                padding: 10px;
+                                border: 2px solid #ddd;
+                                border-radius: 8px;
+                                font-size: 14px;
+                            ">
+                        </div>
+
+                        <div style="text-align: left;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">Password:</label>
+                            <input type="password" id="newAdminPassword" placeholder="Masukkan password admin baru" required style="
+                                width: 100%;
+                                padding: 10px;
+                                border: 2px solid #ddd;
+                                border-radius: 8px;
+                                font-size: 14px;
+                            ">
+                        </div>
+
+                        <div style="background: #fff3cd; padding: 10px; border-radius: 5px; margin: 10px 0;">
+                            <small style="color: #856404;">
+                                💡 <strong>Catatan:</strong> Password akan otomatis dienkripsi ke format base64
+                            </small>
+                        </div>
+
+                        <div style="display: flex; gap: 10px; margin-top: 20px;">
+                            <button type="submit" style="
+                                flex: 1;
+                                padding: 12px;
+                                background: #e74c3c;
+                                color: white;
+                                border: none;
+                                border-radius: 8px;
+                                cursor: pointer;
+                                font-weight: bold;
+                            ">✅ Tambah Admin</button>
+
+                            <button type="button" onclick="closeAddAdminForm()" style="
+                                flex: 1;
+                                padding: 12px;
+                                background: #6c757d;
+                                color: white;
+                                border: none;
+                                border-radius: 8px;
+                                cursor: pointer;
+                                font-weight: bold;
+                            ">❌ Batal</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+
+            document.body.appendChild(formPanel);
+
+            // Handle form submission
+            document.getElementById('addAdminForm').onsubmit = function(e) {
+                e.preventDefault();
+                handleAddAdmin();
+            };
+        }
+
+        // Fungsi untuk menangani penambahan admin
+        function handleAddAdmin() {
+            const username = document.getElementById('newAdminUsername').value;
+            const email = document.getElementById('newAdminEmail').value;
+            const password = document.getElementById('newAdminPassword').value;
+
+            if (!username || !email || !password) {
+                showNotification('Semua field harus diisi!', 'error');
+                return;
+            }
+
+            if (password.length < 6) {
+                showNotification('Password minimal 6 karakter!', 'error');
+                return;
+            }
+
+            // Cek apakah username sudah ada
+            if (window.auth && window.auth.users) {
+                const existingUser = window.auth.users.find(u => u.username === username);
+                if (existingUser) {
+                    showNotification('Username sudah digunakan!', 'error');
+                    return;
+                }
+            }
+
+            // Generate ID baru
+            const newId = window.auth && window.auth.users ? Math.max(...window.auth.users.map(u => u.id)) + 1 : 1;
+
+            // Buat user baru
+            const newAdmin = {
+                id: newId,
+                username: username,
+                email: email,
+                password: btoa(password), // Enkripsi ke base64
+                role: 'admin',
+                isActive: true,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+
+            // Tambahkan ke sistem
+            if (window.auth) {
+                window.auth.users.push(newAdmin);
+                window.auth.saveUsers();
+
+                // Update accounts.json
+                fetch('./accounts.json', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        users: window.auth.users,
+                        metadata: {
+                            version: "2.0",
+                            lastSync: new Date().toISOString(),
+                            description: "User accounts data with base64 password encoding - Role-based access control"
+                        }
+                    })
+                }).catch(err => console.log('Could not sync to accounts.json:', err));
+
+                showNotification(`✅ Admin baru berhasil ditambahkan!\n\nUsername: ${username}\nPassword: ${password}\nRole: admin`, 'success');
+
+                // Tutup form dan refresh
+                setTimeout(() => {
+                    document.querySelector('.add-admin-panel').remove();
+                    showUserList(); // Refresh daftar user
+                }, 2000);
+            } else {
+                showNotification('Sistem auth belum siap', 'error');
+            }
+        }
+
+        // Fungsi untuk menampilkan daftar user
+        function showUserList() {
+            if (window.auth && window.auth.users) {
+                const userList = window.auth.users.map(user => `
+                    <div style="background: rgba(102, 126, 234, 0.1); padding: 10px; margin: 5px 0; border-radius: 5px; text-align: left;">
+                        <strong>${user.username}</strong> (${user.email})
+                        <br><small>Role: ${user.role} | Dibuat: ${new Date(user.createdAt).toLocaleDateString()}</small>
+                    </div>
+                `).join('');
+
+                const listPanel = document.createElement('div');
+                listPanel.className = 'user-list-panel';
+                listPanel.innerHTML = `
+                    <div style="
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background: white;
+                        border: 2px solid #667eea;
+                        border-radius: 15px;
+                        padding: 25px;
+                        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                        z-index: 10002;
+                        max-width: 400px;
+                        max-height: 60vh;
+                        overflow-y: auto;
+                    ">
+                        <h4 style="margin-top: 0; color: #333; text-align: center;">👥 Daftar User (${window.auth.users.length})</h4>
+                        <div>${userList}</div>
+                        <button onclick="closeUserListPanel()" style="
+                            margin-top: 15px;
+                            padding: 10px 20px;
+                            background: #dc3545;
+                            color: white;
+                            border: none;
+                            border-radius: 8px;
+                            cursor: pointer;
+                            display: block;
+                            margin: 15px auto 0;
+                        ">Tutup</button>
+                    </div>
+                `;
+
+                document.body.appendChild(listPanel);
+            } else {
+                showNotification('Data user tidak tersedia', 'error');
+            }
+        }
+
+        // Fungsi untuk menampilkan detail lengkap user termasuk password
+        function showUserDetails() {
+            if (window.auth && window.auth.users) {
+                const userDetails = window.auth.users.map(user => {
+                    // Decode password dari base64
+                    let decodedPassword = 'Tidak dapat decode';
+                    try {
+                        decodedPassword = atob(user.password);
+                    } catch (e) {
+                        decodedPassword = 'Error decode password';
+                    }
+
+                    return `
+                        <div style="background: rgba(102, 126, 234, 0.1); padding: 15px; margin: 8px 0; border-radius: 8px; text-align: left; border-left: 4px solid #667eea;">
+                            <div style="margin-bottom: 10px;">
+                                <strong style="color: #333; font-size: 16px;">${user.username}</strong>
+                                <span style="background: ${user.role === 'admin' ? '#28a745' : '#007bff'}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 10px;">
+                                    ${user.role.toUpperCase()}
+                                </span>
+                            </div>
+                            <div style="font-size: 13px; color: #555; margin-bottom: 8px;">
+                                📧 Email: <strong>${user.email}</strong>
+                            </div>
+                            <div style="font-size: 13px; color: #555; margin-bottom: 8px;">
+                                🔑 Password: <strong style="color: #e74c3c;">${decodedPassword}</strong>
+                            </div>
+                            <div style="font-size: 13px; color: #555; margin-bottom: 8px;">
+                                📅 Dibuat: <strong>${new Date(user.createdAt).toLocaleString()}</strong>
+                            </div>
+                            <div style="font-size: 13px; color: #555; margin-bottom: 8px;">
+                                🔄 Update: <strong>${new Date(user.updatedAt).toLocaleString()}</strong>
+                            </div>
+                            <div style="font-size: 13px; color: #555;">
+                                ✅ Status: <strong style="${user.isActive ? 'color: #28a745' : 'color: #dc3545'}">
+                                    ${user.isActive ? 'Aktif' : 'Non-aktif'}
+                                </strong>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                const detailsPanel = document.createElement('div');
+                detailsPanel.className = 'user-details-panel';
+                detailsPanel.innerHTML = `
+                    <div style="
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background: white;
+                        border: 2px solid #e74c3c;
+                        border-radius: 15px;
+                        padding: 25px;
+                        box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+                        z-index: 10002;
+                        max-width: 600px;
+                        max-height: 80vh;
+                        overflow-y: auto;
+                        width: 90%;
+                    ">
+                        <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 15px;">
+                            <h3 style="margin: 0; color: #e74c3c;">🔍 Detail Lengkap Akun & Password</h3>
+                            <p style="margin: 5px 0; color: #666; font-size: 14px;">
+                                ⚠️ <strong>INFORMASI SENSITIF</strong> - Password ditampilkan dalam format asli
+                            </p>
+                        </div>
+
+                        <div style="background: #fff3cd; padding: 12px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ffc107;">
+                            <strong style="color: #856404;">🔒 Peringatan Keamanan:</strong>
+                            <div style="margin-top: 5px; font-size: 13px; color: #856404;">
+                                • Data password ditampilkan dalam format asli (decoded dari base64)<br>
+                                • Pastikan tidak ada orang lain yang melihat layar<br>
+                                • Tutup panel ini segera setelah selesai
+                            </div>
+                        </div>
+
+                        <div>${userDetails}</div>
+
+                        <div style="margin-top: 20px; padding-top: 15px; border-top: 2px solid #eee; text-align: center;">
+                            <button onclick="document.querySelector('.user-details-panel').remove()" style="
+                                padding: 12px 25px;
+                                background: linear-gradient(135deg, #dc3545, #c82333);
+                                color: white;
+                                border: none;
+                                border-radius: 8px;
+                                cursor: pointer;
+                                font-weight: bold;
+                                font-size: 14px;
+                            ">🔒 Tutup Panel (AMAN)</button>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(detailsPanel);
+            } else {
+                showNotification('Data user tidak tersedia', 'error');
+            }
+        }
+
+        // Fungsi untuk menutup panel daftar user
+        function closeUserListPanel() {
+            const panel = document.querySelector('.user-list-panel');
+            if (panel) {
+                panel.remove();
+            }
+        }
+
+        // Fungsi untuk menutup form tambah admin
+        function closeAddAdminForm() {
+            const panel = document.querySelector('.add-admin-panel');
+            if (panel) {
+                panel.remove();
+            }
+        }
+
+        // Fungsi untuk menampilkan notifikasi
+        function showNotification(message, type) {
+            // Hapus notifikasi yang ada
+            const existingNotification = document.querySelector('.custom-notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+
+            // Buat notifikasi baru
+            const notification = document.createElement('div');
+            notification.className = `custom-notification ${type}`;
+            notification.textContent = message;
+
+            // Style notifikasi
+            Object.assign(notification.style, {
+                position: 'fixed',
+                top: '20px',
+                right: '20px',
+                padding: '15px 20px',
+                borderRadius: '8px',
+                color: 'white',
+                fontWeight: 'bold',
+                zIndex: '10000',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                transform: 'translateX(100%)',
+                transition: 'transform 0.3s ease',
+                maxWidth: '300px',
+                wordWrap: 'break-word'
+            });
+
+            // Set warna berdasarkan type
+            if (type === 'success') {
+                notification.style.backgroundColor = '#28a745';
+            } else if (type === 'error') {
+                notification.style.backgroundColor = '#dc3545';
+            }
+
+            document.body.appendChild(notification);
+
+            // Animasi masuk
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+
+            // Auto hide setelah 5 detik
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.remove();
+                    }
+                }, 300);
+            }, 5000);
+        }
+
+        // Redirect jika belum login atau bukan admin
+        document.addEventListener('DOMContentLoaded', () => {
+            // Cek apakah user sudah login
+            const currentUser = localStorage.getItem('mikaela_current_user');
+            if (!currentUser) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Parse user data
+            const user = JSON.parse(currentUser);
+
+            // Cek apakah user memiliki role admin
+            if (user.role !== 'admin') {
+                // Redirect ke home dengan pesan error
+                alert('❌ Akses Ditolak!\n\nAdmin Panel hanya dapat diakses oleh administrator.\n\nRole Anda: ' + user.role);
+                window.location.href = 'home.html';
+                return;
+            }
+
+            // Tampilkan info admin di header
+            const adminHeader = document.querySelector('.admin-header h1');
+            if (adminHeader) {
+                adminHeader.innerHTML = `🔐 Admin Panel<br><small style="font-size: 14px; color: #ff6b6b;">Logged in as: ${user.username} (${user.role})</small>`;
+            }
+        });
+    </script>
+</body>
+</html>

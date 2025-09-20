@@ -1,0 +1,19 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "email": "admin@mikaela.com",
+      "password": "YWRtaW4=",
+      "role": "admin",
+      "isActive": true,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    }
+  ],
+  "metadata": {
+    "version": "2.0",
+    "lastSync": "2024-01-01T00:00:00.000Z",
+    "description": "User accounts data with base64 password encoding"
+  }
+}

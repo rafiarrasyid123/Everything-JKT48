@@ -151,6 +151,75 @@ class DeviceManager {
         }
     }
 
+    // Sync user account data with device registration
+    async syncUserAccountData() {
+        if (!window.auth || !this.githubAuth || !this.githubAuth.isAuthenticated()) {
+            console.log('Auth or GitHub auth not available for user data sync');
+            return;
+        }
+
+        try {
+            console.log('Syncing user account data with device registration...');
+
+            // Get current user data from auth system
+            const userData = {
+                users: window.auth.users,
+                currentUser: window.auth.currentUser,
+                metadata: {
+                    version: "2.0",
+                    lastSync: new Date().toISOString(),
+                    description: "User account data synced with device registration",
+                    syncedFrom: "device-manager",
+                    deviceInfo: this.currentDevice
+                }
+            };
+
+            // Save user data to GitHub
+            await this.githubAuth.saveUserData(userData);
+
+            console.log('User account data synced successfully');
+            this.showNotification('Data akun berhasil di-sync dengan device', 'success');
+
+        } catch (error) {
+            console.error('Error syncing user account data:', error);
+            this.showNotification('Gagal sync data akun: ' + error.message, 'error');
+        }
+    }
+
+    // Load user account data from GitHub
+    async loadUserAccountData() {
+        if (!this.githubAuth || !this.githubAuth.isAuthenticated()) {
+            console.log('GitHub auth not available for loading user data');
+            return;
+        }
+
+        try {
+            console.log('Loading user account data from GitHub...');
+
+            const userData = await this.githubAuth.loadUserData();
+
+            if (userData && userData.users && window.auth) {
+                // Update auth system with loaded data
+                window.auth.users = userData.users;
+                window.auth.saveUsers();
+
+                // Update current user if available
+                if (userData.currentUser) {
+                    window.auth.setCurrentUser(userData.currentUser);
+                }
+
+                console.log('User account data loaded successfully');
+                this.showNotification(`Data akun berhasil dimuat (${userData.users.length} users)`, 'success');
+
+                return userData;
+            }
+
+        } catch (error) {
+            console.error('Error loading user account data:', error);
+            this.showNotification('Gagal memuat data akun: ' + error.message, 'error');
+        }
+    }
+
     // Save current device to GitHub
     async saveCurrentDevice() {
         if (!this.githubAuth || !this.githubAuth.isAuthenticated()) {

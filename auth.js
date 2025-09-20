@@ -54,32 +54,143 @@ class AuthSystem {
         this.syncWithAccountsJson();
     }
 
-    // Sync dengan accounts.json (untuk environment yang mendukung)
-    async syncWithAccountsJson() {
-        try {
-            // Note: This will only work if running on a server that allows file writing
-            // or if using a different mechanism like server-side API
-            console.log('Attempting to sync with accounts.json...');
+    // Sync dengan GitHub untuk cross-device compatibility
+    async syncWithGitHub() {
+        if (!window.githubAuth || !window.githubAuth.isAuthenticated()) {
+            console.log('GitHub auth not available, skipping sync');
+            return { success: false, message: 'GitHub auth tidak tersedia' };
+        }
 
-            // For now, we'll just log the data that would be synced
+        try {
+            console.log('Syncing user data with GitHub...');
+
             const syncData = {
                 users: this.users,
                 metadata: {
                     version: "2.0",
                     lastSync: new Date().toISOString(),
                     description: "User accounts data with base64 password encoding",
-                    syncedFrom: "localStorage"
+                    syncedFrom: "localStorage",
+                    deviceInfo: this.getCurrentDeviceInfo()
                 }
             };
 
-            console.log('Data to sync:', JSON.stringify(syncData, null, 2));
+            // Save to GitHub
+            await window.githubAuth.saveUserData(syncData);
 
-            // In a real implementation, you would send this to a server endpoint
-            // that can write to accounts.json or use a different sync mechanism
+            // Update local metadata
+            this.updateSyncMetadata('github', new Date().toISOString());
+
+            console.log('Successfully synced with GitHub');
+            return { success: true, message: 'Data berhasil di-sync dengan GitHub' };
 
         } catch (error) {
-            console.log('Sync with accounts.json failed (expected in browser environment):', error.message);
+            console.error('GitHub sync failed:', error);
+            return { success: false, message: 'Gagal sync dengan GitHub: ' + error.message };
         }
+    }
+
+    // Load data dari GitHub
+    async loadFromGitHub() {
+        if (!window.githubAuth || !window.githubAuth.isAuthenticated()) {
+            console.log('GitHub auth not available, skipping load');
+            return { success: false, message: 'GitHub auth tidak tersedia' };
+        }
+
+        try {
+            console.log('Loading user data from GitHub...');
+
+            const githubData = await window.githubAuth.loadUserData();
+
+            if (githubData && githubData.users) {
+                // Merge dengan local data
+                const mergedUsers = this.mergeUserData(this.users, githubData.users);
+
+                this.users = mergedUsers;
+                this.saveUsers();
+
+                // Update sync metadata
+                this.updateSyncMetadata('github', githubData.metadata?.lastSync);
+
+                console.log('Successfully loaded from GitHub');
+                return { success: true, message: `Data berhasil dimuat dari GitHub (${githubData.users.length} users)` };
+            } else {
+                console.log('No data found on GitHub');
+                return { success: false, message: 'Tidak ada data di GitHub' };
+            }
+
+        } catch (error) {
+            console.error('GitHub load failed:', error);
+            return { success: false, message: 'Gagal memuat dari GitHub: ' + error.message };
+        }
+    }
+
+    // Get current device info
+    getCurrentDeviceInfo() {
+        return {
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            language: navigator.language,
+            cookieEnabled: navigator.cookieEnabled,
+            onLine: navigator.onLine,
+            screen: {
+                width: screen.width,
+                height: screen.height,
+                colorDepth: screen.colorDepth
+            },
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Merge user data dari berbagai sumber
+    mergeUserData(localUsers, remoteUsers) {
+        const merged = [...localUsers];
+
+        remoteUsers.forEach(remoteUser => {
+            const existingIndex = merged.findIndex(localUser => localUser.id === remoteUser.id);
+
+            if (existingIndex >= 0) {
+                // User exists, compare timestamps
+                const localUser = merged[existingIndex];
+                const localUpdate = new Date(localUser.updatedAt);
+                const remoteUpdate = new Date(remoteUser.updatedAt);
+
+                if (remoteUpdate > localUpdate) {
+                    // Remote is newer, use remote data
+                    merged[existingIndex] = remoteUser;
+                    console.log(`Updated user ${remoteUser.username} from remote data`);
+                } else if (localUpdate > remoteUpdate) {
+                    // Local is newer, keep local data
+                    console.log(`Kept local data for user ${remoteUser.username}`);
+                } else {
+                    // Same timestamp, no conflict
+                    console.log(`No changes for user ${remoteUser.username}`);
+                }
+            } else {
+                // New user, add it
+                merged.push(remoteUser);
+                console.log(`Added new user ${remoteUser.username} from remote`);
+            }
+        });
+
+        return merged;
+    }
+
+    // Update sync metadata
+    updateSyncMetadata(source, timestamp) {
+        const metadata = {
+            lastSyncSource: source,
+            lastSyncTime: timestamp,
+            lastSyncDevice: this.getCurrentDeviceInfo()
+        };
+
+        localStorage.setItem('mikaela_sync_metadata', JSON.stringify(metadata));
+    }
+
+    // Get sync metadata
+    getSyncMetadata() {
+        const metadata = localStorage.getItem('mikaela_sync_metadata');
+        return metadata ? JSON.parse(metadata) : null;
     }
 
     // Alternative sync method - save to separate user files

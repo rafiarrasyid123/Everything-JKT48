@@ -21,22 +21,29 @@ function checkAuthentication(onLoggedIn) {
         const userDocRef = db.collection("users").doc(user.uid);
         const userDoc = await userDocRef.get();
 
+        // Definisikan email admin utama di sini
+        const isAdminEmail = user.email === "Raffz@Everything.com";
+
         let userData;
 
         if (userDoc.exists) {
           // Dokumen pengguna sudah ada, gunakan datanya
           userData = userDoc.data();
+          // Logika "Self-Healing": Perbaiki peran jika salah
+          if (isAdminEmail && userData.role !== "admin") {
+            console.log(`Memperbaiki peran untuk admin: ${user.email}`);
+            await userDocRef.update({ role: "admin" });
+            userData.role = "admin"; // Perbarui juga objek lokal
+          }
         } else {
           // Dokumen pengguna TIDAK ada (misal: login Google pertama kali atau akun lama).
           // Solusi: Buat dokumen untuk mereka secara otomatis.
           console.log(`Membuat dokumen Firestore untuk pengguna: ${user.uid}`);
-          // Cek apakah email yang login adalah email admin utama
-          const isAdmin = user.email === "Raffz@Everything.com";
           userData = {
             uid: user.uid,
             email: user.email,
             displayName: user.displayName || "", // Ambil dari profil Google jika ada
-            role: isAdmin ? "admin" : "user", // Set role dengan benar
+            role: isAdminEmail ? "admin" : "user", // Set role dengan benar saat pembuatan
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           };
           await userDocRef.set(userData);

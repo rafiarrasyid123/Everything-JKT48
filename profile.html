@@ -115,6 +115,7 @@
     <!-- Firebase SDK & Config -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="auth.js"></script>
     <script src="firebase-config.js"></script>
     <script>
@@ -159,17 +160,46 @@
 
         editUsernameBtn.addEventListener("click", () => {
           const newName = prompt("Masukkan nama tampilan baru:", displayName);
-          if (newName && newName.trim() !== "") {
-            user
-              .updateProfile({ displayName: newName })
-              .then(() => {
-                alert("Nama tampilan berhasil diperbarui!");
-                window.location.reload();
-              })
-              .catch((error) =>
-                alert("Gagal memperbarui nama: " + error.message)
-              );
+          if (!newName || newName.trim() === "") {
+            return; // Jangan lakukan apa-apa jika input kosong
           }
+          if (newName.trim().toLowerCase() === displayName.toLowerCase()) {
+            return; // Jangan lakukan apa-apa jika nama sama
+          }
+
+          // Cek keunikan username di Firestore
+          db.collection("users")
+            .where("displayName", "==", newName.trim())
+            .get()
+            .then((snapshot) => {
+              if (!snapshot.empty) {
+                alert(
+                  "Username tersebut sudah digunakan. Silakan pilih yang lain."
+                );
+              } else {
+                // Jika unik, lanjutkan proses update
+                // 1. Update profil di Firebase Auth
+                user
+                  .updateProfile({ displayName: newName.trim() })
+                  .then(() => {
+                    // 2. Update dokumen di Firestore
+                    return db.collection("users").doc(user.uid).update({
+                      displayName: newName.trim(),
+                    });
+                  })
+                  .then(() => {
+                    alert("Nama tampilan berhasil diperbarui!");
+                    window.location.reload();
+                  })
+                  .catch((error) => {
+                    alert("Gagal memperbarui nama: " + error.message);
+                  });
+              }
+            })
+            .catch((error) => {
+              console.error("Error checking username uniqueness:", error);
+              alert("Terjadi kesalahan saat memeriksa username.");
+            });
         });
 
         changePasswordBtn.addEventListener("click", () => {

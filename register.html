@@ -127,6 +127,7 @@
     <!-- Firebase SDK (Software Development Kit) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <!-- Konfigurasi Firebase kita -->
     <script src="firebase-config.js"></script>
@@ -153,12 +154,27 @@
           auth
             .createUserWithEmailAndPassword(email, password)
             .then((userCredential) => {
-              // Pendaftaran berhasil
-              messageEl.style.color = "green";
-              messageEl.textContent =
-                "Akun berhasil dibuat! Mengarahkan ke halaman login...";
-              setTimeout(() => {
-                window.location.href = "login.html";
+              // Pendaftaran berhasil, sekarang buat dokumen di Firestore
+              const user = userCredential.user;
+              db.collection("users")
+                .doc(user.uid)
+                .set({
+                  uid: user.uid,
+                  email: user.email,
+                  displayName: "", // Username akan diatur di halaman profil
+                  createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                })
+                .then(() => {
+                  messageEl.style.color = "green";
+                  messageEl.textContent =
+                    "Akun berhasil dibuat! Mengarahkan ke halaman login...";
+                  setTimeout(() => {
+                    window.location.href = "login.html";
+                  }, 2000);
+                });
+            })
+            .catch((error) => {
+              // Jika terjadi error
               }, 2000);
             })
             .catch((error) => {

@@ -64,6 +64,26 @@
           transform: translateY(0);
         }
       }
+      .status-indicator-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+      #firebase-status {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: #f39c12; /* Kuning: Menghubungkan... */
+        transition: background-color 0.5s ease;
+      }
+      #firebase-status.connected {
+        background-color: #2ecc71; /* Hijau: Terhubung */
+      }
+      #firebase-status.error {
+        background-color: #e74c3c; /* Merah: Gagal */
+      }
       .login-container h1 {
         margin-bottom: 1.5rem;
         color: var(--text-color);
@@ -143,7 +163,10 @@
   </head>
   <body>
     <div class="login-container">
-      <h1>Silakan Login</h1>
+      <div class="status-indicator-wrapper">
+        <h1>Silakan Login</h1>
+        <span id="firebase-status" title="Menghubungkan ke Firebase..."></span>
+      </div>
       <form id="login-form">
         <div>
           <input type="email" id="email" placeholder="Email" required />
@@ -204,6 +227,25 @@
     <script src="firebase-config.js"></script>
 
     <script>
+      const statusIndicator = document.getElementById("firebase-status");
+
+      // Cek koneksi ke Firebase setelah inisialisasi
+      try {
+        // Jika objek 'auth' dari firebase-config.js berhasil dibuat,
+        // berarti inisialisasi dasar berhasil.
+        if (auth) {
+          statusIndicator.classList.add("connected");
+          statusIndicator.title = "Firebase Terhubung";
+        } else {
+          throw new Error("Objek Firebase Auth tidak ditemukan.");
+        }
+      } catch (error) {
+        statusIndicator.classList.add("error");
+        statusIndicator.title =
+          "Gagal terhubung ke Firebase. Periksa konsol (F12).";
+        console.error("Error Inisialisasi Firebase:", error);
+      }
+
       // Terapkan tema secepat mungkin
       const savedTheme = localStorage.getItem("theme") || "light";
       document.documentElement.setAttribute("data-theme", savedTheme);

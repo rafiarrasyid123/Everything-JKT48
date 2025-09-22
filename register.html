@@ -154,31 +154,27 @@
           auth
             .createUserWithEmailAndPassword(email, password)
             .then((userCredential) => {
-              // Pendaftaran berhasil, sekarang buat dokumen di Firestore
+              // Pendaftaran di Auth berhasil, sekarang buat dokumen di Firestore.
+              // 'return' di sini penting untuk menyambungkan promise.
               const user = userCredential.user;
-              db.collection("users")
-                .doc(user.uid)
-                .set({
-                  uid: user.uid,
-                  email: user.email,
-                  displayName: "", // Username akan diatur di halaman profil
-                  createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                })
-                .then(() => {
-                  messageEl.style.color = "green";
-                  messageEl.textContent =
-                    "Akun berhasil dibuat! Mengarahkan ke halaman login...";
-                  setTimeout(() => {
-                    window.location.href = "login.html";
-                  }, 2000);
-                });
+              return db.collection("users").doc(user.uid).set({
+                uid: user.uid,
+                email: user.email,
+                displayName: "", // Username akan diatur di halaman profil
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+              });
             })
-            .catch((error) => {
-              // Jika terjadi error
+            .then(() => {
+              // Ini akan berjalan HANYA JIKA Auth dan Firestore berhasil.
+              messageEl.style.color = "green";
+              messageEl.textContent =
+                "Akun berhasil dibuat! Mengarahkan ke halaman login...";
+              setTimeout(() => {
+                window.location.href = "login.html";
               }, 2000);
             })
             .catch((error) => {
-              // Jika terjadi error
+              // Satu .catch() ini akan menangani semua error (baik dari Auth maupun Firestore).
               messageEl.style.color = "red";
               if (error.code === "auth/email-already-in-use") {
                 messageEl.textContent = "Email ini sudah terdaftar.";

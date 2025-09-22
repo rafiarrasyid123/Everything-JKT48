@@ -1,3 +1,27 @@
+/* --- Hamburger Menu --- */
+.hamburger-menu {
+  display: none; /* Sembunyikan di desktop */
+  position: fixed;
+  top: 20px;
+  left: 20px; /* Pindahkan ke kiri */
+  z-index: 1001;
+  width: 40px; /* <-- Lebar tombol */
+  height: 40px; /* <-- Tinggi tombol */
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.hamburger-menu span {
+  display: block;
+  width: 100%;
+  height: 4px; /* <-- Ketebalan garis */
+  background-color: var(--text-color);
+  margin: 6px 0; /* <-- Jarak antar garis */
+  transition: all 0.3s ease-in-out;
+  border-radius: 2px;
+}
 /* Definisi Variabel Warna */
 :root,
 [data-theme="light"] {
@@ -328,7 +352,7 @@ button[type="submit"]:active {
   .nav {
     position: fixed;
     top: 0;
-    left: -100%; /* Mulai dari luar layar */
+    left: -100%; /* Mulai dari luar layar kiri */
     width: 280px;
     height: 100vh;
     background-color: var(--container-bg, rgba(255, 255, 255, 0.95));
@@ -338,18 +362,18 @@ button[type="submit"]:active {
     transition: left 0.4s ease-in-out;
     flex-direction: column;
     justify-content: flex-start;
-    align-items: flex-start;
+    align-items: flex-start; /* Ratakan item ke kiri */
   }
 
   .menu-active .nav {
-    left: 0; /* Munculkan menu */
+    left: 0; /* Munculkan menu dari kiri */
   }
 
   .nav a {
     width: 100%;
     padding: 15px 30px;
     box-sizing: border-box;
-    text-align: left;
+    text-align: left; /* Ratakan teks ke kiri */
     font-size: 1.2rem;
     margin: 0;
   }

@@ -250,14 +250,6 @@
       const savedTheme = localStorage.getItem("theme") || "light";
       document.documentElement.setAttribute("data-theme", savedTheme);
 
-      // Cek status login dengan Firebase
-      auth.onAuthStateChanged((user) => {
-        if (user) {
-          // Jika pengguna sudah login, langsung arahkan ke beranda
-          window.location.replace("index.html");
-        }
-      });
-
       document
         .getElementById("login-form")
         .addEventListener("submit", function (event) {
@@ -274,14 +266,16 @@
               window.location.href = "index.html";
             })
             .catch((error) => {
+              console.error("Login error:", error.code); // Untuk debugging
               if (
                 error.code === "auth/user-not-found" ||
-                error.code === "auth/wrong-password"
+                error.code === "auth/wrong-password" ||
+                error.code === "auth/invalid-credential"
               ) {
                 errorMessage.textContent = "Email atau Password salah!";
               } else {
                 errorMessage.textContent =
-                  "Terjadi kesalahan. Coba lagi nanti.";
+                  "Terjadi kesalahan. Periksa konsol (F12) untuk detail.";
               }
             });
         });

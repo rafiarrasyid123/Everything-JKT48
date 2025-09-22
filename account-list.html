@@ -213,7 +213,7 @@
                 const demoteButton = document.createElement("button");
                 demoteButton.textContent = "Jadikan User";
                 demoteButton.className = "delete-btn"; // Menggunakan style tombol hapus
-                demoteButton.onclick = () => {
+                demoteButton.addEventListener("click", () => {
                   if (
                     confirm(
                       `Yakin ingin mengubah peran "${
@@ -226,13 +226,13 @@
                       .update({ role: "user" })
                       .then(() => {
                         alert("Peran berhasil diubah.");
-                        listItem.remove(); // Hapus dari tampilan
+                        listItem.remove(); // Hapus dari tampilan secara instan
                       })
                       .catch((err) =>
                         alert("Gagal mengubah peran: " + err.message)
                       );
                   }
-                };
+                });
                 buttonGroup.appendChild(demoteButton);
               }
 

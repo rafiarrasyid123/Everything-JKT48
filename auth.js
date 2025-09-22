@@ -37,7 +37,7 @@ function manageNavLinks(user) {
   // Daftar email yang dianggap sebagai admin
   const ADMIN_EMAILS = [
     "Raffz@Everything.com",
-    // "admin.baru@contoh.com", // Tambahkan email admin lain di sini
+    "raffzmika@example.com", // Admin baru
   ];
 
   const accountListLink = document.getElementById("account-list-link");
@@ -103,7 +103,7 @@ function setupThemeSwitcher() {
 function protectAdminRoute() {
   const ADMIN_EMAILS = [
     "Raffz@Everything.com",
-    // "admin.baru@contoh.com",
+    "raffzmika@example.com", // Admin baru
   ];
 
   auth.onAuthStateChanged((user) => {

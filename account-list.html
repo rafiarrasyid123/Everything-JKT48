@@ -55,6 +55,22 @@
         padding: 10px;
         border-radius: 5px;
         margin-top: 20px;
+        text-align: left;
+        line-height: 1.5;
+      }
+      .console-link {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 10px 20px;
+        background-color: #ffca28; /* Warna khas Firebase */
+        color: #212529;
+        text-decoration: none;
+        font-weight: bold;
+        border-radius: 5px;
+        transition: background-color 0.3s;
+      }
+      .console-link:hover {
+        background-color: #ffb300;
       }
       .delete-btn {
         background-color: #dc3545;
@@ -118,11 +134,17 @@
     <div class="content-container">
       <h1 class="title">Data Akun Terdaftar</h1>
       <div class="warning">
-        <strong>Fitur Dinonaktifkan:</strong> Menampilkan daftar semua pengguna
-        memerlukan akses admin di sisi server (Backend/Firebase Cloud Functions)
-        dan tidak aman untuk dilakukan dari sisi klien (browser).
+        <strong>Fitur Pindah ke Firebase Console</strong><br />
+        Untuk alasan keamanan, daftar lengkap pengguna hanya dapat dilihat
+        melalui dasbor admin Firebase. Ini melindungi data pengguna agar tidak
+        bisa diakses dari browser.
       </div>
-      <ul id="account-list"></ul>
+      <a
+        href="https://console.firebase.google.com/project/everything-c2500/authentication/users"
+        target="_blank"
+        class="console-link"
+        >Buka Daftar Pengguna di Firebase</a
+      >
     </div>
 
     <script>

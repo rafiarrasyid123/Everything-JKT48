@@ -312,8 +312,10 @@
               })
               .catch((error) => {
                 console.error("Error querying Firestore:", error);
+                // This error often happens if a Firestore index is missing.
+                // The console (F12) will have a link to create it.
                 errorMessage.textContent =
-                  "Terjadi kesalahan saat mencari username.";
+                  "Gagal mencari username. Periksa konsol (F12) untuk detail teknis.";
               });
           }
         });

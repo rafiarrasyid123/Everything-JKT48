@@ -34,13 +34,16 @@ function checkAuthentication(onLoggedIn) {
  * @param {object} user - The user object from Firebase Auth.
  */
 function manageNavLinks(user) {
-  // GANTI DENGAN EMAIL ADMIN ANDA
-  const ADMIN_EMAIL = "Raffz@Everything.com";
+  // Daftar email yang dianggap sebagai admin
+  const ADMIN_EMAILS = [
+    "Raffz@Everything.com",
+    // "admin.baru@contoh.com", // Tambahkan email admin lain di sini
+  ];
 
   const accountListLink = document.getElementById("account-list-link");
   const addAdminLink = document.getElementById("add-admin-link");
 
-  if (user && user.email === ADMIN_EMAIL) {
+  if (user && ADMIN_EMAILS.includes(user.email)) {
     // Jika pengguna adalah admin, tampilkan link
     if (accountListLink) accountListLink.style.display = "inline";
     if (addAdminLink) addAdminLink.style.display = "inline";
@@ -98,11 +101,13 @@ function setupThemeSwitcher() {
  * This function assumes the user is already logged in.
  */
 function protectAdminRoute() {
-  // GANTI DENGAN EMAIL ADMIN ANDA
-  const ADMIN_EMAIL = "Raffz@Everything.com";
+  const ADMIN_EMAILS = [
+    "Raffz@Everything.com",
+    // "admin.baru@contoh.com",
+  ];
 
   auth.onAuthStateChanged((user) => {
-    if (!user || user.email !== ADMIN_EMAIL) {
+    if (!user || !ADMIN_EMAILS.includes(user.email)) {
       // Jika tidak ada user atau email tidak cocok dengan email admin
       alert("Anda tidak memiliki hak akses untuk halaman ini.");
       window.location.replace("index.html");

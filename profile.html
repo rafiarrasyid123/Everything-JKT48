@@ -103,6 +103,10 @@
       .action-button:hover {
         background-color: #5a6268;
       }
+      .action-button:disabled {
+        background-color: #adb5bd;
+        cursor: not-allowed;
+      }
     </style>
     <style>
       /* Sembunyikan konten sampai status login diverifikasi */
@@ -141,6 +145,18 @@
         <button id="change-password-btn" class="action-button">
           Ubah Password
         </button>
+        <p
+          id="password-reset-info"
+          style="
+            font-size: 0.8rem;
+            color: var(--role-text-color);
+            display: none;
+            margin-top: 10px;
+          "
+        >
+          Password tidak dapat diubah untuk akun yang login via Google atau
+          metode lainnya.
+        </p>
       </div>
     </div>
 
@@ -239,6 +255,9 @@
         const passwordProvider = user.providerData.find(
           (provider) => provider.providerId === "password"
         );
+        const passwordResetInfo = document.getElementById(
+          "password-reset-info"
+        );
 
         if (passwordProvider) {
           // Jika pengguna login dengan email/password, aktifkan fitur ubah password
@@ -248,24 +267,33 @@
                 "Anda akan dikirimi email untuk mereset password. Lanjutkan?"
               )
             ) {
+              // Nonaktifkan tombol dan tampilkan status mengirim
+              changePasswordBtn.disabled = true;
+              changePasswordBtn.textContent = "Mengirim...";
+
               auth
                 .sendPasswordResetEmail(email)
                 .then(() => {
                   alert(
                     "Email reset password telah dikirim. Silakan periksa inbox Anda."
                   );
+                  // Kembalikan tombol ke keadaan semula
+                  changePasswordBtn.disabled = false;
+                  changePasswordBtn.textContent = "Ubah Password";
                 })
-                .catch((error) =>
-                  alert("Gagal mengirim email: " + error.message)
-                );
+                .catch((error) => {
+                  alert("Gagal mengirim email: " + error.message);
+                  // Kembalikan tombol jika terjadi error
+                  changePasswordBtn.disabled = false;
+                  changePasswordBtn.textContent = "Ubah Password";
+                });
             }
           });
         } else {
           // Jika pengguna login via Google atau lainnya, nonaktifkan tombol
           changePasswordBtn.textContent = "Login via Pihak Ketiga";
           changePasswordBtn.disabled = true;
-          changePasswordBtn.title =
-            "Password tidak dapat diubah untuk akun yang login via Google atau metode lainnya.";
+          passwordResetInfo.style.display = "block";
         }
       });
     </script>

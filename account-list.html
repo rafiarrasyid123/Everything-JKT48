@@ -139,9 +139,9 @@
         Halaman ini menampilkan semua pengguna yang terdaftar. Anda dapat
         mengubah peran mereka di sini.
         <strong>Password tidak ditampilkan</strong> karena disimpan secara
-        terenkripsi. Untuk <strong>menghapus akun</strong>, silakan gunakan
-        tombol "Buka Dasbor Pengguna" dan hapus akun dari Firebase Console untuk
-        alasan keamanan.
+        terenkripsi. Untuk <strong>menghapus akun</strong>, Anda harus
+        menggunakan tombol "Hapus di Konsol" yang akan membawa Anda ke dasbor
+        Firebase yang aman.
       </div>
       <a
         href="https://console.firebase.google.com/project/everything-c2500/authentication/users"
@@ -307,11 +307,11 @@
 
                 // Tombol untuk menghapus akun (mengarahkan ke console)
                 const deleteButton = document.createElement("button");
-                deleteButton.textContent = "Hapus";
+                deleteButton.textContent = "Hapus di Konsol";
                 deleteButton.className = "delete-btn";
                 deleteButton.addEventListener("click", () => {
                   alert(
-                    "Untuk keamanan, hapus akun harus dilakukan dari Firebase Console. Anda akan diarahkan ke sana."
+                    "Anda akan diarahkan ke Firebase Console untuk menghapus akun ini secara aman."
                   );
                   window.open(
                     "https://console.firebase.google.com/project/everything-c2500/authentication/users",

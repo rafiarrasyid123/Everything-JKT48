@@ -192,7 +192,12 @@
             })
             .catch((error) => {
               messageEl.style.color = "red";
-              messageEl.textContent = "Error: " + error.message;
+              if (error.code === "failed-precondition") {
+                messageEl.innerHTML =
+                  "Error: Diperlukan Firestore Index. <br>Buka konsol (F12), cari link di pesan error, dan klik untuk membuatnya.";
+              } else {
+                messageEl.textContent = "Error: " + error.message;
+              }
               console.error("Gagal menjadikan admin:", error);
               button.disabled = false;
             });

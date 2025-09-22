@@ -48,6 +48,24 @@
         background-size: cover; /* Agar gambar isian pas */
         background-position: center; /* Posisi gambar di tengah */
         position: relative; /* Untuk ikon overlay */
+        transition: opacity 0.4s ease, transform 0.4s ease,
+          border-color 0.4s ease;
+      }
+      .profile-avatar.loading {
+        color: transparent !important; /* Sembunyikan teks saat loading */
+        border: 4px solid rgba(0, 0, 0, 0.2);
+        border-top-color: #d83a7c;
+        animation: spin 1s linear infinite;
+      }
+      .profile-avatar.fading-out {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
       }
       .username-wrapper {
         display: flex;
@@ -131,6 +149,31 @@
         background-color: #adb5bd;
         cursor: not-allowed;
       }
+      .delete-btn {
+        background-color: #dc3545;
+      }
+      .delete-btn:hover {
+        background-color: #c82333;
+      }
+      .profile-actions .action-button {
+        margin: 5px;
+      }
+
+      /* Responsive untuk layar kecil */
+      @media (max-width: 480px) {
+        .profile-container {
+          padding: 1.5rem;
+          margin: 2rem auto;
+        }
+        .username-wrapper {
+          flex-direction: column;
+          gap: 15px;
+        }
+        .profile-input {
+          width: 100%;
+          box-sizing: border-box;
+        }
+      }
     </style>
     <style>
       /* Sembunyikan konten sampai status login diverifikasi */
@@ -140,6 +183,13 @@
     </style>
   </head>
   <body class="is-loading">
+    <button class="hamburger-menu" aria-label="Buka menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <div class="overlay"></div>
+
     <nav class="nav">
       <a href="index.html">Beranda</a>
       <a href="about.html"> Bio Mikaela </a>
@@ -184,6 +234,13 @@
         <button id="change-password-btn" class="action-button">
           Ubah Password
         </button>
+        <button
+          id="delete-photo-btn"
+          class="action-button delete-btn"
+          style="display: none"
+        >
+          Hapus Foto
+        </button>
         <p
           id="password-reset-info"
           style="
@@ -222,6 +279,7 @@
         // 3. Panggil semua fungsi setup UI di sini
         setupThemeSwitcher();
         setupLogoutButton();
+        setupMobileMenu();
 
         // 4. Dapatkan elemen DOM dan perbarui UI dengan data pengguna
         const profileAvatar = document.getElementById("profile-avatar");
@@ -240,6 +298,7 @@
         const cancelEditBtn = document.getElementById("cancel-edit-btn");
         const usernameError = document.getElementById("username-error");
         const avatarUpload = document.getElementById("avatar-upload");
+        const deletePhotoBtn = document.getElementById("delete-photo-btn");
 
         const displayName =
           userData.displayName || user.displayName || "Tanpa Nama";
@@ -251,10 +310,12 @@
         if (user.photoURL) {
           profileAvatar.style.backgroundImage = `url(${user.photoURL})`;
           profileAvatar.textContent = "";
+          deletePhotoBtn.style.display = "inline-block"; // Tampilkan tombol hapus
         } else {
           profileAvatar.textContent = (
             displayName[0] || email[0]
           ).toUpperCase();
+          deletePhotoBtn.style.display = "none"; // Sembunyikan tombol hapus
         }
 
         editUsernameBtn.style.display = "inline-block";
@@ -272,8 +333,9 @@
           if (!file) return;
 
           // Tampilkan status loading di avatar
-          profileAvatar.textContent = "...";
+          profileAvatar.textContent = "";
           profileAvatar.style.backgroundImage = "";
+          profileAvatar.classList.add("loading");
 
           try {
             // Buat referensi di Firebase Storage
@@ -288,14 +350,71 @@
 
             // Perbarui profil di Auth dan Firestore
             await user.updateProfile({ photoURL: photoURL });
-            await db.collection("users").doc(user.uid).update({ photoURL: photoURL });
+            await db
+              .collection("users")
+              .doc(user.uid)
+              .update({ photoURL: photoURL });
 
             alert("Foto profil berhasil diperbarui!");
-            window.location.reload();
+            // Perbarui UI tanpa reload
+            profileAvatar.classList.remove("loading");
+            profileAvatar.style.backgroundImage = `url(${photoURL})`;
           } catch (error) {
             console.error("Gagal mengunggah foto:", error);
-            alert("Gagal mengunggah foto profil. Periksa konsol (F12) untuk detail.");
-            window.location.reload(); // Muat ulang untuk mengembalikan tampilan
+            alert(
+              "Gagal mengunggah foto profil. Periksa konsol (F12) untuk detail."
+            );
+            // Kembalikan tampilan ke semula jika gagal
+            window.location.reload();
+          }
+        });
+
+        // --- Logika untuk Hapus Foto Profil ---
+        deletePhotoBtn.addEventListener("click", async () => {
+          if (!user.photoURL) {
+            alert("Tidak ada foto profil untuk dihapus.");
+            return;
+          }
+
+          if (confirm("Apakah Anda yakin ingin menghapus foto profil?")) {
+            deletePhotoBtn.disabled = true;
+            deletePhotoBtn.textContent = "Menghapus...";
+
+            try {
+              // 1. Dapatkan referensi dari URL dan hapus dari Storage
+              const photoRef = storage.refFromURL(user.photoURL);
+              await photoRef.delete();
+
+              // 2. Perbarui profil di Auth
+              await user.updateProfile({ photoURL: "" });
+
+              // 3. Perbarui dokumen di Firestore
+              await db
+                .collection("users")
+                .doc(user.uid)
+                .update({ photoURL: "" });
+
+              // Animasi fade-out
+              profileAvatar.classList.add("fading-out");
+
+              // Tunggu animasi selesai, lalu perbarui UI
+              setTimeout(() => {
+                profileAvatar.style.backgroundImage = "none";
+                profileAvatar.textContent = (
+                  displayName[0] || email[0]
+                ).toUpperCase();
+                profileAvatar.classList.remove("fading-out");
+                deletePhotoBtn.style.display = "none";
+                deletePhotoBtn.disabled = false;
+                deletePhotoBtn.textContent = "Hapus Foto";
+                alert("Foto profil berhasil dihapus.");
+              }, 400); // Sesuaikan dengan durasi transisi CSS
+            } catch (error) {
+              console.error("Gagal menghapus foto profil:", error);
+              alert("Gagal menghapus foto profil. Error: " + error.message);
+              deletePhotoBtn.disabled = false;
+              deletePhotoBtn.textContent = "Hapus Foto";
+            }
           }
         });
 

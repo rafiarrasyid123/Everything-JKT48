@@ -185,6 +185,10 @@ img {
 }
 
 .nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
   text-align: center;
   margin-bottom: 20px;
   font-size: 25px;
@@ -303,4 +307,69 @@ button[type="submit"]:active {
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   margin-bottom: 30px;
+}
+
+/* --- Responsive Design --- */
+
+/* Untuk Tablet dan HP besar (lebar layar di bawah 768px) */
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+
+  .title {
+    font-size: 2.2rem;
+  }
+
+  .hamburger-menu {
+    display: block;
+  }
+
+  .nav {
+    position: fixed;
+    top: 0;
+    left: -100%; /* Mulai dari luar layar */
+    width: 280px;
+    height: 100vh;
+    background-color: var(--container-bg, rgba(255, 255, 255, 0.95));
+    backdrop-filter: blur(10px);
+    padding-top: 80px;
+    z-index: 1000;
+    transition: left 0.4s ease-in-out;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
+
+  .menu-active .nav {
+    left: 0; /* Munculkan menu */
+  }
+
+  .nav a {
+    width: 100%;
+    padding: 15px 30px;
+    box-sizing: border-box;
+    text-align: left;
+    font-size: 1.2rem;
+    margin: 0;
+  }
+
+  .contact {
+    padding: 2rem; /* Kurangi padding secara signifikan */
+  }
+
+  .contact h2 {
+    font-size: 35px;
+  }
+}
+
+/* Untuk HP kecil (lebar layar di bawah 480px) */
+@media (max-width: 480px) {
+  .title {
+    font-size: 1.8rem;
+  }
+
+  .contact {
+    padding: 1.5rem;
+  }
 }

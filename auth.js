@@ -111,6 +111,26 @@ function setupLogoutButton() {
 }
 
 /**
+ * Sets up the mobile hamburger menu functionality.
+ */
+function setupMobileMenu() {
+  const hamburgerBtn = document.querySelector(".hamburger-menu");
+  const navMenu = document.querySelector(".nav");
+  const overlay = document.querySelector(".overlay");
+  const body = document.body;
+
+  if (hamburgerBtn && navMenu && overlay) {
+    hamburgerBtn.addEventListener("click", () => {
+      body.classList.toggle("menu-active");
+    });
+
+    overlay.addEventListener("click", () => {
+      body.classList.remove("menu-active");
+    });
+  }
+}
+
+/**
  * Attaches the theme switcher event listener to the theme toggle button.
  */
 function setupThemeSwitcher() {

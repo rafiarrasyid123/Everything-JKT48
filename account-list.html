@@ -47,6 +47,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        flex-wrap: wrap; /* Izinkan item untuk wrap */
       }
       .warning {
         color: #8b0000;
@@ -116,9 +117,30 @@
       .button-group {
         display: flex;
       }
+
+      /* Responsive untuk layar kecil */
+      @media (max-width: 600px) {
+        #account-list li {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 15px;
+        }
+
+        .button-group {
+          width: 100%;
+          justify-content: flex-start;
+        }
+      }
     </style>
   </head>
   <body class="is-loading">
+    <button class="hamburger-menu" aria-label="Buka menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <div class="overlay"></div>
+
     <nav class="nav">
       <a href="index.html">Beranda</a>
       <a href="about.html"> Bio Mikaela </a>
@@ -179,6 +201,7 @@
         manageNavLinks(userData); // <-- Tambahkan ini agar menu tetap ada
         setupThemeSwitcher();
         setupLogoutButton();
+        setupMobileMenu();
 
         // --- Ambil Daftar Admin dari Firestore ---
         const listElement = document.getElementById("account-list");

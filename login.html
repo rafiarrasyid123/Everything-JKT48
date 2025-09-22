@@ -232,7 +232,15 @@
               window.location.href = "index.html";
             })
             .catch((error) => {
-              errorMessage.textContent = "Email atau Password salah!";
+              if (
+                error.code === "auth/user-not-found" ||
+                error.code === "auth/wrong-password"
+              ) {
+                errorMessage.textContent = "Email atau Password salah!";
+              } else {
+                errorMessage.textContent =
+                  "Terjadi kesalahan. Coba lagi nanti.";
+              }
             });
         });
 

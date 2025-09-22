@@ -190,13 +190,53 @@
             snapshot.forEach((doc) => {
               const adminData = doc.data();
               const listItem = document.createElement("li");
+
+              const infoSpan = document.createElement("span");
               const isAdminYou =
-                adminData.email === user.email ? "<strong>(Anda)</strong>" : "";
-              listItem.innerHTML = `
-                <span>Email: ${adminData.email}, Nama: ${
+                adminData.email === user.email
+                  ? " <strong>(Anda)</strong>"
+                  : "";
+              infoSpan.innerHTML = `Email: ${adminData.email}, Nama: ${
                 adminData.displayName || "Tanpa Nama"
-              } ${isAdminYou}</span>
-              `;
+              }${isAdminYou}`;
+              listItem.appendChild(infoSpan);
+
+              // Tambahkan tombol untuk mengubah role kembali ke user
+              const buttonGroup = document.createElement("div");
+              buttonGroup.className = "button-group";
+
+              const isMainAdmin =
+                adminData.email.toLowerCase() === "raffzmikaela@everything.com";
+
+              // Jangan tampilkan tombol untuk admin utama atau diri sendiri
+              if (!isMainAdmin && adminData.email !== user.email) {
+                const demoteButton = document.createElement("button");
+                demoteButton.textContent = "Jadikan User";
+                demoteButton.className = "delete-btn"; // Menggunakan style tombol hapus
+                demoteButton.onclick = () => {
+                  if (
+                    confirm(
+                      `Yakin ingin mengubah peran "${
+                        adminData.displayName || adminData.email
+                      }" menjadi 'user'?`
+                    )
+                  ) {
+                    db.collection("users")
+                      .doc(doc.id)
+                      .update({ role: "user" })
+                      .then(() => {
+                        alert("Peran berhasil diubah.");
+                        listItem.remove(); // Hapus dari tampilan
+                      })
+                      .catch((err) =>
+                        alert("Gagal mengubah peran: " + err.message)
+                      );
+                  }
+                };
+                buttonGroup.appendChild(demoteButton);
+              }
+
+              listItem.appendChild(buttonGroup);
               listElement.appendChild(listItem);
             });
           })

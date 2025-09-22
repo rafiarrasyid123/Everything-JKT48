@@ -452,6 +452,7 @@
 
           saveUsernameBtn.disabled = true;
           saveUsernameBtn.textContent = "Menyimpan...";
+          saveUsernameBtn.classList.add("loading");
 
           try {
             // Cek keunikan username di Firestore
@@ -464,6 +465,7 @@
               usernameError.textContent = "Username sudah digunakan.";
               saveUsernameBtn.disabled = false;
               saveUsernameBtn.textContent = "Simpan";
+              saveUsernameBtn.classList.remove("loading");
               return;
             }
 
@@ -481,6 +483,7 @@
             usernameError.textContent = "Gagal memperbarui nama.";
             saveUsernameBtn.disabled = false;
             saveUsernameBtn.textContent = "Simpan";
+            saveUsernameBtn.classList.remove("loading");
           }
         });
 

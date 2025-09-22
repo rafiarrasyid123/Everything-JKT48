@@ -309,6 +309,69 @@ button[type="submit"]:active {
   margin-bottom: 30px;
 }
 
+/* --- Hamburger Menu --- */
+.hamburger-menu {
+  display: none; /* Sembunyikan di desktop */
+  position: fixed;
+  top: 20px;
+  left: 20px; /* Pindahkan ke kiri */
+  z-index: 1001;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  /* Tambahkan transisi untuk rotasi tombol */
+  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.hamburger-menu span {
+  display: block;
+  width: 100%;
+  height: 4px; /* <-- Ketebalan garis */
+  background-color: var(--text-color);
+  margin: 6px 0; /* <-- Memberi jarak antar garis agar terlihat tiga */
+  /* Gunakan cubic-bezier untuk transisi yang lebih dinamis */
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  border-radius: 2px;
+}
+
+/* Tambahkan rotasi pada tombol saat menu aktif */
+.menu-active .hamburger-menu {
+  transform: rotate(180deg);
+}
+
+/* Animasi Hamburger menjadi X saat menu terbuka */
+.menu-active .hamburger-menu span:nth-child(1) {
+  transform: translateY(10px) rotate(45deg);
+}
+.menu-active .hamburger-menu span:nth-child(2) {
+  opacity: 0;
+}
+.menu-active .hamburger-menu span:nth-child(3) {
+  transform: translateY(-10px) rotate(-45deg);
+}
+
+/* Overlay untuk latar belakang gelap saat menu terbuka */
+.overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 999;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.menu-active .overlay {
+  display: block;
+  opacity: 1;
+}
+
 /* --- Responsive Design --- */
 
 /* Untuk Tablet dan HP besar (lebar layar di bawah 768px) */
@@ -335,7 +398,7 @@ button[type="submit"]:active {
     backdrop-filter: blur(10px);
     padding-top: 80px;
     z-index: 1000;
-    transition: left 0.4s ease-in-out;
+    transition: left 0.5s cubic-bezier(0.23, 1, 0.32, 1);
     flex-direction: column;
     justify-content: flex-start;
     align-items: flex-start; /* Ratakan item ke kiri */

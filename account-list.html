@@ -130,10 +130,11 @@
       <h1 class="title">Data Akun Terdaftar</h1>
       <ul id="account-list"></ul>
       <div class="warning">
-        <strong>Daftar Akun Admin</strong><br />
-        Untuk alasan keamanan, daftar lengkap pengguna hanya dapat dilihat
-        melalui dasbor admin Firebase. Halaman ini hanya menampilkan akun dengan
-        peran <strong>admin</strong>.
+        <strong>Manajemen Pengguna</strong><br />
+        Halaman ini menampilkan semua pengguna yang terdaftar. Anda dapat
+        mengubah peran mereka di sini.
+        <strong>Password tidak ditampilkan</strong>
+        karena disimpan secara terenkripsi dan tidak dapat diambil kembali.
       </div>
       <a
         href="https://console.firebase.google.com/project/everything-c2500/authentication/users"
@@ -178,62 +179,100 @@
         if (!listElement) return;
 
         db.collection("users")
-          .where("role", "==", "admin")
+          .orderBy("createdAt", "desc")
           .get()
           .then((snapshot) => {
             if (snapshot.empty) {
-              listElement.innerHTML =
-                "<li>Tidak ada akun admin yang ditemukan.</li>";
+              listElement.innerHTML = "<li>Tidak ada akun yang terdaftar.</li>";
               return;
             }
 
             snapshot.forEach((doc) => {
-              const adminData = doc.data();
+              const userData = doc.data();
               const listItem = document.createElement("li");
 
               const infoSpan = document.createElement("span");
-              const isAdminYou =
-                adminData.email === user.email
-                  ? " <strong>(Anda)</strong>"
-                  : "";
-              infoSpan.innerHTML = `Email: ${adminData.email}, Nama: ${
-                adminData.displayName || "Tanpa Nama"
-              }${isAdminYou}`;
+              const isCurrentUser =
+                userData.email === user.email ? " <strong>(Anda)</strong>" : "";
+              infoSpan.innerHTML = `Email: ${userData.email}<br>Nama: ${
+                userData.displayName || "Tanpa Nama"
+              }<br>Role: <strong>${userData.role}</strong>${isCurrentUser}`;
               listItem.appendChild(infoSpan);
 
-              // Tambahkan tombol untuk mengubah role kembali ke user
+              // Tambahkan tombol aksi
               const buttonGroup = document.createElement("div");
               buttonGroup.className = "button-group";
 
               const isMainAdmin =
-                adminData.email.toLowerCase() === "raffzmikaela@everything.com";
+                userData.email.toLowerCase() === "raffzmikaela@everything.com";
 
-              // Jangan tampilkan tombol untuk admin utama atau diri sendiri
-              if (!isMainAdmin && adminData.email !== user.email) {
-                const demoteButton = document.createElement("button");
-                demoteButton.textContent = "Jadikan User";
-                demoteButton.className = "delete-btn"; // Menggunakan style tombol hapus
-                demoteButton.addEventListener("click", () => {
-                  if (
-                    confirm(
-                      `Yakin ingin mengubah peran "${
-                        adminData.displayName || adminData.email
-                      }" menjadi 'user'?`
-                    )
-                  ) {
-                    db.collection("users")
-                      .doc(doc.id)
-                      .update({ role: "user" })
-                      .then(() => {
-                        alert("Peran berhasil diubah.");
-                        listItem.remove(); // Hapus dari tampilan secara instan
-                      })
-                      .catch((err) =>
-                        alert("Gagal mengubah peran: " + err.message)
-                      );
-                  }
-                });
-                buttonGroup.appendChild(demoteButton);
+              // Jangan tampilkan tombol aksi untuk admin utama atau diri sendiri
+              if (!isMainAdmin && userData.email !== user.email) {
+                if (userData.role === "admin") {
+                  // Tombol untuk menurunkan peran dari admin ke user
+                  const demoteButton = document.createElement("button");
+                  demoteButton.textContent = "Jadikan User";
+                  demoteButton.className = "delete-btn";
+                  demoteButton.addEventListener("click", () => {
+                    if (
+                      confirm(
+                        `Yakin ingin mengubah peran "${
+                          userData.displayName || userData.email
+                        }" menjadi 'user'?`
+                      )
+                    ) {
+                      db.collection("users")
+                        .doc(doc.id)
+                        .update({ role: "user" })
+                        .then(() => {
+                          alert("Peran berhasil diubah.");
+                          // Perbarui tampilan tanpa refresh
+                          infoSpan.innerHTML = `Email: ${
+                            userData.email
+                          }<br>Nama: ${
+                            userData.displayName || "Tanpa Nama"
+                          }<br>Role: <strong>user</strong>${isCurrentUser}`;
+                          demoteButton.remove();
+                        })
+                        .catch((err) =>
+                          alert("Gagal mengubah peran: " + err.message)
+                        );
+                    }
+                  });
+                  buttonGroup.appendChild(demoteButton);
+                } else {
+                  // Tombol untuk menaikkan peran dari user ke admin
+                  const promoteButton = document.createElement("button");
+                  promoteButton.textContent = "Jadikan Admin";
+                  promoteButton.className = "edit-btn";
+                  promoteButton.addEventListener("click", () => {
+                    if (
+                      confirm(
+                        `Yakin ingin mengubah peran "${
+                          userData.displayName || userData.email
+                        }" menjadi 'admin'?`
+                      )
+                    ) {
+                      db.collection("users")
+                        .doc(doc.id)
+                        .update({ role: "admin" })
+                        .then(() => {
+                          alert("Peran berhasil diubah.");
+                          // Perbarui tampilan tanpa refresh
+                          infoSpan.innerHTML = `Email: ${
+                            userData.email
+                          }<br>Nama: ${
+                            userData.displayName || "Tanpa Nama"
+                          }<br>Role: <strong>admin</strong>${isCurrentUser}`;
+                          promoteButton.remove();
+                        })
+                        .catch((err) =>
+                          alert("Gagal mengubah peran: " + err.message)
+                        );
+                    }
+                  });
+                  buttonGroup.appendChild(promoteButton);
+                }
               }
 
               listItem.appendChild(buttonGroup);
@@ -242,7 +281,7 @@
           })
           .catch((error) => {
             console.error("Gagal mengambil daftar admin:", error);
-            listElement.innerHTML = `<li>Terjadi error. Periksa konsol (F12) untuk detail. Kemungkinan besar Anda perlu membuat Firestore Index.</li>`;
+            listElement.innerHTML = `<li>Terjadi error. Periksa konsol (F12) untuk detail. Kemungkinan besar Anda perlu membuat Firestore Index untuk 'createdAt'.</li>`;
           });
       });
       protectAdminRoute();

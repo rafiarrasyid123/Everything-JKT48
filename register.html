@@ -155,14 +155,21 @@
             .createUserWithEmailAndPassword(email, password)
             .then((userCredential) => {
               // Pendaftaran di Auth berhasil, sekarang buat dokumen di Firestore.
+              // Tentukan role saat pendaftaran.
+              const isAdmin = email === "Raffz@Everything.com"; // Hanya email utama yang jadi admin saat daftar
+
               // 'return' di sini penting untuk menyambungkan promise.
               const user = userCredential.user;
-              return db.collection("users").doc(user.uid).set({
-                uid: user.uid,
-                email: user.email,
-                displayName: "", // Username akan diatur di halaman profil
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-              });
+              return db
+                .collection("users")
+                .doc(user.uid)
+                .set({
+                  uid: user.uid,
+                  email: user.email,
+                  displayName: "", // Username akan diatur di halaman profil
+                  role: isAdmin ? "admin" : "user", // Set role di sini
+                  createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                });
             })
             .then(() => {
               // Ini akan berjalan HANYA JIKA Auth dan Firestore berhasil.

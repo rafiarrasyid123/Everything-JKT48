@@ -88,12 +88,36 @@
         margin-top: 1rem;
         height: 2em;
       }
+      .instructions {
+        text-align: left;
+        margin-top: 1.5rem;
+        padding: 1rem;
+        background-color: rgba(0, 0, 0, 0.03);
+        border-left: 4px solid #d83a7c;
+        border-radius: 4px;
+      }
+      .instructions h3 {
+        margin-top: 0;
+      }
+      .instructions ol {
+        padding-left: 20px;
+      }
+      .instructions li {
+        margin-bottom: 10px;
+      }
+      .instructions code {
+        background-color: rgba(0, 0, 0, 0.1);
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: "Courier New", Courier, monospace;
+      }
     </style>
   </head>
   <body class="is-loading">
     <!-- Pengecekan login dan role admin -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="auth.js"></script>
     <script src="firebase-config.js"></script>
     <script>
@@ -106,42 +130,70 @@
 
     <div class="admin-container">
       <h1>Tambah Admin Baru</h1>
-      <div
-        class="warning"
-        style="
-          color: #8b0000;
-          background-color: #fff3cd;
-          border: 1px solid #ffeeba;
-          padding: 10px;
-          border-radius: 5px;
-          margin-top: 20px;
-        "
-      >
-        <strong>Fitur Dinonaktifkan:</strong> Menambah admin baru secara aman
-        memerlukan backend (Firebase Cloud Functions) untuk menetapkan peran
-        khusus (Custom Claims).
-      </div>
+      <p>
+        Masukkan email calon admin yang <strong>sudah terdaftar</strong> untuk
+        menghasilkan baris kode yang perlu ditambahkan.
+      </p>
       <form id="add-admin-form">
-        <div>
-          <input
-            type="text"
-            id="username"
-            placeholder="Username Admin Baru"
-            disabled
-          />
-        </div>
-        <div>
-          <input
-            type="password"
-            id="password"
-            placeholder="Password Admin Baru"
-            disabled
-          />
-        </div>
-        <button type="submit" disabled>Tambah Admin</button>
+        <input
+          type="email"
+          id="new-admin-email"
+          placeholder="Email Admin Baru"
+          required
+        />
+        <button type="submit">Jadikan Admin</button>
       </form>
+
       <p id="message"></p>
+
       <a href="index.html">Kembali ke Beranda</a>
     </div>
+    <script>
+      document
+        .getElementById("add-admin-form")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+          const form = event.target;
+          const button = form.querySelector("button");
+          const newAdminEmail =
+            document.getElementById("new-admin-email").value;
+          const messageEl = document.getElementById("message");
+
+          button.disabled = true;
+          messageEl.textContent = "Memproses...";
+          messageEl.style.color = "blue";
+
+          // Cari pengguna berdasarkan email di Firestore
+          db.collection("users")
+            .where("email", "==", newAdminEmail)
+            .get()
+            .then((snapshot) => {
+              if (snapshot.empty) {
+                messageEl.style.color = "red";
+                messageEl.textContent = "Error: Email tidak ditemukan.";
+                button.disabled = false;
+                return;
+              }
+
+              // Update role pengguna menjadi admin
+              const userDoc = snapshot.docs[0];
+              return db.collection("users").doc(userDoc.id).update({
+                role: "admin",
+              });
+            })
+            .then(() => {
+              messageEl.style.color = "green";
+              messageEl.textContent = `Sukses! Pengguna dengan email ${newAdminEmail} sekarang adalah admin.`;
+              document.getElementById("add-admin-form").reset();
+              button.disabled = false;
+            })
+            .catch((error) => {
+              messageEl.style.color = "red";
+              messageEl.textContent = "Error: " + error.message;
+              console.error("Gagal menjadikan admin:", error);
+              button.disabled = false;
+            });
+        });
+    </script>
   </body>
 </html>

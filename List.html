@@ -7,20 +7,6 @@
     <link rel="stylesheet" href="mikaela.css" />
   </head>
   <body class="is-loading">
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <!-- Konfigurasi & Skrip Auth -->
-    <script src="auth.js"></script>
-    <script src="firebase-config.js"></script>
-    <script>
-      applyInitialTheme();
-      checkAuthentication(() => {
-        document.body.classList.remove("is-loading");
-        manageNavLinks(auth.currentUser);
-      });
-    </script>
-
     <nav class="nav">
       <a href="index.html">Beranda</a>
       <a href="about.html"> Bio Mikaela </a>
@@ -149,12 +135,5 @@
     <footer class="Raffz">
       <p>Created By Raffz</p>
     </footer>
-    <script>
-      // Wait for the DOM to be ready before manipulating it
-      document.addEventListener("DOMContentLoaded", function () {
-        setupThemeSwitcher();
-        setupLogoutButton();
-      });
-    </script>
   </body>
 </html>

@@ -14,12 +14,47 @@ function applyInitialTheme() {
  * @param {function} onLoggedIn - A callback function to run if the user is logged in.
  */
 function checkAuthentication(onLoggedIn) {
-  // Menggunakan onAuthStateChanged untuk memantau status login secara real-time
-  auth.onAuthStateChanged((user) => {
+  auth.onAuthStateChanged(async (user) => {
     if (user) {
-      // Pengguna sudah login
-      if (onLoggedIn) {
-        onLoggedIn(user); // Jalankan callback dan kirim data pengguna
+      // Pengguna sudah login, sekarang ambil data role dari Firestore
+      try {
+        const userDocRef = db.collection("users").doc(user.uid);
+        const userDoc = await userDocRef.get();
+
+        let userData;
+
+        if (userDoc.exists) {
+          // Dokumen pengguna sudah ada, gunakan datanya
+          userData = userDoc.data();
+        } else {
+          // Dokumen pengguna TIDAK ada (misal: login Google pertama kali atau akun lama).
+          // Solusi: Buat dokumen untuk mereka secara otomatis.
+          console.log(`Membuat dokumen Firestore untuk pengguna: ${user.uid}`);
+          // Cek apakah email yang login adalah email admin utama
+          const isAdmin = user.email === "Raffz@Everything.com";
+          userData = {
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName || "", // Ambil dari profil Google jika ada
+            role: isAdmin ? "admin" : "user", // Set role dengan benar
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          };
+          await userDocRef.set(userData);
+        }
+
+        // Kirim data Auth dan data Firestore ke callback
+        if (onLoggedIn) onLoggedIn(user, userData);
+      } catch (error) {
+        console.error(
+          "Gagal mengambil/membuat data pengguna dari Firestore:",
+          error
+        );
+        // Tampilkan pesan error yang jelas kepada pengguna
+        alert(
+          "Gagal memuat data profil dari database. Kemungkinan besar aturan keamanan Firestore Anda sudah kedaluwarsa. Silakan periksa Firebase Console -> Firestore Database -> Rules."
+        );
+        // Tampilkan halaman meskipun datanya mungkin tidak lengkap
+        document.body.classList.remove("is-loading");
       }
     } else {
       // Pengguna tidak login, paksa kembali ke halaman login
@@ -30,21 +65,14 @@ function checkAuthentication(onLoggedIn) {
 }
 
 /**
- * Shows or hides admin-specific navigation links based on the logged-in user's email.
- * @param {object} user - The user object from Firebase Auth.
+ * Shows or hides admin-specific navigation links based on the user's role from Firestore.
+ * @param {object} userData - The user data object from Firestore.
  */
-function manageNavLinks(user) {
-  // Daftar email yang dianggap sebagai admin
-  const ADMIN_EMAILS = [
-    "Raffz@Everything.com",
-    "raffzmika@example.com",
-    "adminbaru@example.com", // <-- CONTOH: Tambahkan email admin baru di sini
-  ];
-
+function manageNavLinks(userData) {
   const accountListLink = document.getElementById("account-list-link");
   const addAdminLink = document.getElementById("add-admin-link");
 
-  if (user && ADMIN_EMAILS.includes(user.email)) {
+  if (userData && userData.role === "admin") {
     // Jika pengguna adalah admin, tampilkan link
     if (accountListLink) accountListLink.style.display = "inline";
     if (addAdminLink) addAdminLink.style.display = "inline";
@@ -102,17 +130,20 @@ function setupThemeSwitcher() {
  * This function assumes the user is already logged in.
  */
 function protectAdminRoute() {
-  const ADMIN_EMAILS = [
-    "Raffz@Everything.com",
-    "raffzmika@example.com",
-    "adminbaru@example.com", // <-- CONTOH: Tambahkan juga di sini
-  ];
-
-  auth.onAuthStateChanged((user) => {
-    if (!user || !ADMIN_EMAILS.includes(user.email)) {
-      // Jika tidak ada user atau email tidak cocok dengan email admin
-      alert("Anda tidak memiliki hak akses untuk halaman ini.");
-      window.location.replace("index.html");
+  auth.onAuthStateChanged(async (user) => {
+    if (user) {
+      const userDoc = await db.collection("users").doc(user.uid).get();
+      if (userDoc.exists && userDoc.data().role === "admin") {
+        // Pengguna adalah admin, biarkan akses.
+      } else {
+        // Pengguna bukan admin, tendang.
+        alert("Anda tidak memiliki hak akses untuk halaman ini.");
+        window.location.replace("index.html");
+      }
+    } else {
+      // Tidak ada pengguna yang login, tendang.
+      // (checkAuthentication seharusnya sudah menangani ini, tapi sebagai pengaman tambahan)
+      window.location.replace("login.html");
     }
   });
 }

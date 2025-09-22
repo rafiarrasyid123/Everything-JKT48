@@ -117,12 +117,47 @@
     <!-- Firebase SDK & Config -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="auth.js"></script>
     <script src="firebase-config.js"></script>
     <script>
       applyInitialTheme();
-      checkAuthentication(() => {
+      checkAuthentication((user, userData) => {
         document.body.classList.remove("is-loading");
+        setupThemeSwitcher();
+        setupLogoutButton();
+
+        // --- Ambil Daftar Admin dari Firestore ---
+        const listElement = document.getElementById("account-list");
+        if (!listElement) return;
+
+        db.collection("users")
+          .where("role", "==", "admin")
+          .get()
+          .then((snapshot) => {
+            if (snapshot.empty) {
+              listElement.innerHTML =
+                "<li>Tidak ada akun admin yang ditemukan.</li>";
+              return;
+            }
+
+            snapshot.forEach((doc) => {
+              const adminData = doc.data();
+              const listItem = document.createElement("li");
+              const isAdminYou =
+                adminData.email === user.email ? "<strong>(Anda)</strong>" : "";
+              listItem.innerHTML = `
+                <span>Email: ${adminData.email}, Nama: ${
+                adminData.displayName || "Tanpa Nama"
+              } ${isAdminYou}</span>
+              `;
+              listElement.appendChild(listItem);
+            });
+          })
+          .catch((error) => {
+            console.error("Gagal mengambil daftar admin:", error);
+            listElement.innerHTML = `<li>Terjadi error. Periksa konsol (F12) untuk detail. Kemungkinan besar Anda perlu membuat Firestore Index.</li>`;
+          });
       });
       protectAdminRoute();
     </script>
@@ -141,11 +176,12 @@
 
     <div class="content-container">
       <h1 class="title">Data Akun Terdaftar</h1>
+      <ul id="account-list"></ul>
       <div class="warning">
-        <strong>Pusat Kontrol Admin</strong><br />
+        <strong>Daftar Akun Admin</strong><br />
         Untuk alasan keamanan, daftar lengkap pengguna hanya dapat dilihat
-        melalui dasbor admin Firebase. Ini melindungi data pengguna agar tidak
-        bisa diakses dari browser.
+        melalui dasbor admin Firebase. Halaman ini hanya menampilkan akun dengan
+        peran <strong>admin</strong>.
       </div>
       <a
         href="https://console.firebase.google.com/project/everything-c2500/authentication/users"
@@ -170,13 +206,5 @@
         ><span>Buka Dasbor Pengguna</span></a
       >
     </div>
-
-    <script>
-      // Render awal dan setup saat halaman dimuat
-      document.addEventListener("DOMContentLoaded", function () {
-        setupThemeSwitcher();
-        setupLogoutButton();
-      });
-    </script>
   </body>
 </html>

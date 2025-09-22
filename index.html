@@ -13,22 +13,6 @@
     </style>
   </head>
   <body class="is-loading">
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <!-- Konfigurasi & Skrip Auth -->
-    <script src="auth.js"></script>
-    <script src="firebase-config.js"></script>
-    <script>
-      applyInitialTheme(); // Terapkan tema sebelum render
-      checkAuthentication(() => {
-        // Jika login berhasil, tampilkan halaman
-        document.body.classList.remove("is-loading");
-        // Cek status admin setelah login diverifikasi
-        manageNavLinks(auth.currentUser);
-      });
-    </script>
-
     <nav class="nav">
       <a href="index.html">Beranda</a>
       <a href="about.html"> Bio Mikaela </a>
@@ -78,9 +62,22 @@
     <footer class="Raffz">
       <p>Created By Raffz</p>
     </footer>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <!-- Konfigurasi & Skrip Auth -->
+    <script src="auth.js"></script>
+    <script src="firebase-config.js"></script>
     <script>
-      // Wait for the DOM to be ready before manipulating it
-      document.addEventListener("DOMContentLoaded", function () {
+      applyInitialTheme(); // Terapkan tema sebelum render
+      checkAuthentication((user, userData) => {
+        // Jika login berhasil, tampilkan halaman
+        document.body.classList.remove("is-loading");
+        // Cek status admin setelah login diverifikasi
+        manageNavLinks(userData);
+        // Jalankan setup UI lainnya setelah halaman siap
         setupThemeSwitcher();
         setupLogoutButton();
       });

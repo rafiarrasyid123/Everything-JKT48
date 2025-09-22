@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profil Pengguna - Mikaela Fan Page</title>
+    <link rel="stylesheet" href="mikaela.css" />
+    <style>
+      /* Variabel Tema untuk Halaman Profil */
+      :root,
+      [data-theme="light"] {
+        --container-bg: rgba(255, 255, 255, 0.9);
+        --text-color: #333;
+        --role-text-color: #666;
+        --border-color: #eee;
+      }
+      [data-theme="dark"] {
+        --container-bg: rgba(45, 55, 72, 0.9);
+        --text-color: #e2e8f0;
+        --role-text-color: #a0aec0;
+        --border-color: #4a5568;
+      }
+
+      .profile-container {
+        max-width: 600px;
+        margin: 4rem auto;
+        padding: 2rem 3rem;
+        background-color: var(--container-bg);
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        text-align: center;
+        transition: background-color 0.4s ease;
+      }
+      .profile-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background-color: #d83a7c;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        font-weight: bold;
+        margin: 0 auto 1.5rem;
+        text-transform: uppercase;
+        cursor: pointer; /* Menandakan bisa diklik */
+        background-size: cover; /* Agar gambar isian pas */
+        background-position: center; /* Posisi gambar di tengah */
+        position: relative; /* Untuk ikon overlay */
+      }
+      .username-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 0.5rem; /* Memberi jarak ke tulisan role di bawahnya */
+      }
+      .profile-info h2 {
+        margin: 0;
+        font-size: 2rem;
+        color: var(--text-color);
+        transition: color 0.4s ease;
+      }
+      .profile-info p {
+        margin-top: 0.5rem;
+        font-size: 1.1rem;
+        color: var(--role-text-color);
+        text-transform: capitalize;
+        transition: color 0.4s ease;
+      }
+      .edit-btn {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: background-color 0.2s;
+        display: none; /* Sembunyikan secara default */
+      }
+      .edit-btn:hover {
+        background-color: #0056b3;
+      }
+      .profile-actions {
+        margin-top: 1.5rem;
+        border-top: 1px solid var(--border-color);
+        padding-top: 1.5rem;
+        transition: border-top-color 0.4s ease;
+      }
+      .action-button {
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: background-color 0.2s;
+      }
+
+      .action-button:hover {
+        background-color: #5a6268;
+      }
+    </style>
+    <style>
+      /* Sembunyikan konten sampai status login diverifikasi */
+      body.is-loading {
+        display: none;
+      }
+    </style>
+  </head>
+  <body class="is-loading">
+    <!-- Firebase SDK & Config -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="auth.js"></script>
+    <script src="firebase-config.js"></script>
+    <script>
+      applyInitialTheme();
+      checkAuthentication(() => document.body.classList.remove("is-loading"));
+    </script>
+
+    <nav class="nav">
+      <a href="index.html">Beranda</a>
+      <a href="about.html"> Bio Mikaela </a>
+      <a href="everything.html">Everything</a>
+      <a href="List.html">Saluran Everything JKT48</a>
+      <a href="profile.html">Profil</a>
+      <a href="#" id="theme-toggle-btn">Mode Gelap</a>
+      <a href="#" id="logout-btn">Logout</a>
+    </nav>
+
+    <div class="profile-container">
+      <div id="profile-avatar" class="profile-avatar"></div>
+      <div class="profile-info">
+        <div class="username-wrapper">
+          <h2 id="profile-username"></h2>
+          <button id="edit-username-btn" class="edit-btn">Ubah</button>
+        </div>
+        <p id="profile-email"></p>
+      </div>
+      <div class="profile-actions">
+        <button id="change-password-btn" class="action-button">
+          Ubah Password
+        </button>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Panggil fungsi-fungsi setup setelah DOM siap
+        manageNavLinks();
+        setupThemeSwitcher();
+        setupLogoutButton();
+
+        // Dapatkan elemen-elemen DOM
+        const profileAvatar = document.getElementById("profile-avatar");
+        const profileUsername = document.getElementById("profile-username");
+        const profileEmail = document.getElementById("profile-email");
+        const editUsernameBtn = document.getElementById("edit-username-btn");
+        const changePasswordBtn = document.getElementById(
+          "change-password-btn"
+        );
+
+        // Gunakan onAuthStateChanged untuk mendapatkan data pengguna saat ini
+        auth.onAuthStateChanged((user) => {
+          if (user) {
+            // Pengguna ditemukan, perbarui UI
+            const displayName = user.displayName || "Tanpa Nama";
+            const email = user.email;
+
+            profileUsername.textContent = displayName;
+            profileEmail.textContent = email;
+
+            if (user.photoURL) {
+              profileAvatar.style.backgroundImage = `url(${user.photoURL})`;
+              profileAvatar.textContent = "";
+            } else {
+              profileAvatar.textContent = (
+                displayName[0] || email[0]
+              ).toUpperCase();
+            }
+
+            // Tampilkan tombol ubah nama
+            editUsernameBtn.style.display = "inline-block";
+
+            // Event listener untuk mengubah nama tampilan
+            editUsernameBtn.addEventListener("click", () => {
+              const newName = prompt(
+                "Masukkan nama tampilan baru:",
+                displayName
+              );
+              if (newName && newName.trim() !== "") {
+                user
+                  .updateProfile({
+                    displayName: newName,
+                  })
+                  .then(() => {
+                    alert("Nama tampilan berhasil diperbarui!");
+                    window.location.reload();
+                  })
+                  .catch((error) => {
+                    alert("Gagal memperbarui nama: " + error.message);
+                  });
+              }
+            });
+
+            // Event listener untuk mengubah password
+            changePasswordBtn.addEventListener("click", () => {
+              if (
+                confirm(
+                  "Anda akan dikirimi email untuk mereset password. Lanjutkan?"
+                )
+              ) {
+                auth
+                  .sendPasswordResetEmail(email)
+                  .then(() => {
+                    alert(
+                      "Email reset password telah dikirim. Silakan periksa inbox Anda."
+                    );
+                  })
+                  .catch((error) => {
+                    alert("Gagal mengirim email: " + error.message);
+                  });
+              }
+            });
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

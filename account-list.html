@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Data Akun - Mikaela Fan Page</title>
+    <link rel="stylesheet" href="mikaela.css" />
+    <style>
+      /* Variabel Tema untuk Halaman Daftar Akun */
+      :root,
+      [data-theme="light"] {
+        --container-bg: rgba(255, 255, 255, 0.9);
+        --list-item-bg: #f9f9f9;
+        --list-item-border: #d83a7c;
+        --list-item-text: #212529;
+      }
+      [data-theme="dark"] {
+        --container-bg: rgba(45, 55, 72, 0.9);
+        --list-item-bg: #2d3748;
+        --list-item-border: #ed64a6;
+        --list-item-text: #e2e8f0;
+      }
+
+      .content-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background-color: var(--container-bg);
+        transition: background-color 0.4s ease;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      #account-list {
+        list-style-type: none;
+        padding: 0;
+      }
+      #account-list li {
+        background: var(--list-item-bg);
+        color: var(--list-item-text);
+        border-left: 5px solid var(--list-item-border);
+        transition: background-color 0.4s ease, color 0.4s ease,
+          border-color 0.4s ease;
+        margin-bottom: 10px;
+        padding: 15px;
+        border-radius: 5px;
+        font-family: "Courier New", Courier, monospace;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .warning {
+        color: #8b0000;
+        background-color: #fff3cd;
+        border: 1px solid #ffeeba;
+        padding: 10px;
+        border-radius: 5px;
+        margin-top: 20px;
+      }
+      .delete-btn {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      .delete-btn:hover {
+        background-color: #c82333;
+      }
+      .edit-btn {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        margin-right: 5px; /* Jarak antara tombol */
+      }
+
+      .edit-btn:hover {
+        background-color: #0056b3;
+      }
+
+      .button-group {
+        display: flex;
+      }
+    </style>
+  </head>
+  <body>
+    <script src="auth.js"></script>
+    <script>
+      applyInitialTheme();
+      checkAuthentication();
+      protectAdminRoute();
+    </script>
+
+    <nav class="nav">
+      <a href="index.html">Beranda</a>
+      <a href="about.html"> Bio Mikaela </a>
+      <a href="everything.html">Everything</a>
+      <a href="List.html">Saluran Everything JKT48</a>
+      <a href="profile.html">Profil</a>
+      <a href="account-list.html" id="account-list-link">Data Akun</a>
+      <a href="add-admin.html" id="add-admin-link">Tambah Admin</a>
+      <a href="#" id="theme-toggle-btn">Mode Gelap</a>
+      <a href="#" id="logout-btn">Logout</a>
+    </nav>
+
+    <div class="content-container">
+      <h1 class="title">Data Akun Terdaftar</h1>
+      <ul id="account-list"></ul>
+    </div>
+
+    <script>
+      // Fungsi untuk me-render daftar akun
+      function renderAccountList() {
+        const listElement = document.getElementById("account-list");
+        listElement.innerHTML = ""; // Kosongkan daftar sebelum me-render ulang
+
+        const accounts = JSON.parse(localStorage.getItem("userAccounts")) || [];
+
+        if (accounts.length === 0) {
+          listElement.innerHTML =
+            "<li>Tidak ada akun yang terdaftar di browser ini.</li>";
+          return;
+        }
+
+        accounts.forEach((account) => {
+          const listItem = document.createElement("li");
+
+          const infoSpan = document.createElement("span");
+          const roleText = account.role === "admin" ? "Admin" : "User";
+          infoSpan.textContent = `Username: ${account.username} || Role: ${roleText}`;
+          listItem.appendChild(infoSpan);
+
+          const buttonGroup = document.createElement("div");
+          buttonGroup.className = "button-group";
+
+          if (account.username.toLowerCase() !== "raffz") {
+            const changePasswordButton = document.createElement("button");
+            changePasswordButton.textContent = "Ubah Password";
+            changePasswordButton.className = "edit-btn";
+            changePasswordButton.dataset.username = account.username;
+
+            changePasswordButton.addEventListener("click", function () {
+              const userToChange = this.dataset.username;
+              const newPassword = prompt(
+                `Masukkan password baru untuk "${userToChange}":`
+              );
+
+              if (newPassword && newPassword.trim() !== "") {
+                let currentAccounts =
+                  JSON.parse(localStorage.getItem("userAccounts")) || [];
+                const accountIndex = currentAccounts.findIndex(
+                  (acc) => acc.username === userToChange
+                );
+
+                if (accountIndex > -1) {
+                  currentAccounts[accountIndex].password = newPassword;
+                  localStorage.setItem(
+                    "userAccounts",
+                    JSON.stringify(currentAccounts)
+                  );
+                  alert(
+                    `Password untuk "${userToChange}" telah berhasil diubah.`
+                  );
+                }
+              } else if (newPassword !== null) {
+                alert("Password tidak boleh kosong.");
+              }
+            });
+            buttonGroup.appendChild(changePasswordButton);
+
+            const deleteButton = document.createElement("button");
+            deleteButton.textContent = "Hapus";
+            deleteButton.className = "delete-btn";
+            deleteButton.dataset.username = account.username;
+
+            deleteButton.addEventListener("click", function () {
+              const userToDelete = this.dataset.username;
+              if (
+                confirm(
+                  `Apakah Anda yakin ingin menghapus akun "${userToDelete}"?`
+                )
+              ) {
+                let currentAccounts =
+                  JSON.parse(localStorage.getItem("userAccounts")) || [];
+                const updatedAccounts = currentAccounts.filter(
+                  (acc) => acc.username !== userToDelete
+                );
+                localStorage.setItem(
+                  "userAccounts",
+                  JSON.stringify(updatedAccounts)
+                );
+                // Tidak perlu reload, cukup render ulang daftarnya
+                renderAccountList();
+              }
+            });
+            buttonGroup.appendChild(deleteButton);
+          }
+
+          listItem.appendChild(buttonGroup);
+          listElement.appendChild(listItem);
+        });
+      }
+
+      // Render awal dan setup saat halaman dimuat
+      document.addEventListener("DOMContentLoaded", function () {
+        renderAccountList();
+        setupThemeSwitcher();
+        setupLogoutButton();
+      });
+
+      // Dengarkan perubahan pada localStorage dari tab lain
+      window.addEventListener("storage", function (event) {
+        if (event.key === "userAccounts") {
+          // Jika data akun berubah, render ulang daftarnya
+          renderAccountList();
+        }
+      });
+    </script>
+  </body>
+</html>

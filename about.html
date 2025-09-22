@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tentang Mikaela</title>
+    <link rel="stylesheet" href="mikaela.css" />
+  </head>
+  <body>
+    <script src="auth.js"></script>
+    <script>
+      applyInitialTheme();
+      checkAuthentication();
+    </script>
+
+    <nav class="nav">
+      <a href="index.html">Beranda</a>
+      <a href="about.html"> Bio Mikaela </a>
+      <a href="everything.html">Everything</a>
+      <a href="List.html">Saluran Everything JKT48</a>
+      <a href="profile.html">Profil</a>
+      <a href="#" id="theme-toggle-btn">Mode Gelap</a>
+      <a href="#" id="logout-btn">Logout</a>
+    </nav>
+
+    <h1 class="title">Tentang Mikaela</h1>
+
+    <section class="bio">
+      <h1>Tentang Mikaela</h1>
+      <h3>Mikaela adalah Member JKT48 Generasi 13</h3>
+      <h3>Dia Sangat Cantik Dan Sangat imut</h3>
+    </section>
+
+    <div class="gallery">
+      <div class="container" tabindex="0" aria-label="Gambar Mikaela">
+        <img src="Gambar/Mika.jpg" alt="Foto Mikaela" />
+        <div class="text-overlay"></div>
+      </div>
+      <div class="container" tabindex="0" aria-label="Gambar tambahan Mikaela">
+        <img src="Gambar/MikaelaJKT48.jpg" alt="Foto tambahan Mikaela" />
+        <div class="text-overlay"></div>
+      </div>
+      <div class="container" tabindex="0" aria-label="Gambar tambahan Mikaela">
+        <img src="Gambar/mikasd.jpg" alt="Foto tambahan Mikaela" />
+        <div class="text-overlay"></div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <p>&copy; 2024 Raffz. All rights reserved.</p>
+    </footer>
+    <footer class="Raffz">
+      <p>Created By Raffz</p>
+    </footer>
+    <script>
+      // Wait for the DOM to be ready before manipulating it
+      document.addEventListener("DOMContentLoaded", function () {
+        manageNavLinks();
+        setupThemeSwitcher();
+        setupLogoutButton();
+      });
+    </script>
+  </body>
+</html>

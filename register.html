@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Buat Akun - Mikaela Fan Page</title>
+    <link rel="stylesheet" href="mikaela.css" />
+    <style>
+      /* Variabel Tema untuk Halaman Register */
+      :root,
+      [data-theme="light"] {
+        --container-bg: rgba(255, 255, 255, 0.8);
+        --text-color: #333;
+        --input-bg: #ffffff;
+        --input-border: #ccc;
+        --input-text: #212529;
+        --link-color: #007bff;
+      }
+      [data-theme="dark"] {
+        --container-bg: rgba(28, 28, 30, 0.85);
+        --text-color: #f2f2f2;
+        --input-bg: #3a3a3c;
+        --input-border: #545458;
+        --input-text: #f2f2f2;
+        --link-color: #63b3ed;
+      }
+
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        font-family: sans-serif;
+        background-image: url("Gambar/Mika.jpg");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+      }
+      .register-container {
+        background: var(--container-bg);
+        transition: background-color 0.4s ease;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        text-align: center;
+        width: 100%;
+        max-width: 400px;
+      }
+      .register-container h1 {
+        margin-bottom: 1.5rem;
+        color: var(--text-color);
+        transition: color 0.4s ease;
+      }
+      .register-container input {
+        box-sizing: border-box;
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 1rem;
+        border: 1px solid var(--input-border);
+        background-color: var(--input-bg);
+        color: var(--input-text);
+        transition: background-color 0.4s ease, color 0.4s ease,
+          border-color 0.4s ease;
+        border-radius: 4px;
+      }
+      .register-container button {
+        width: 100%;
+        padding: 10px;
+        background-color: #d83a7c;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 1rem;
+      }
+      .register-container a {
+        display: block;
+        margin-top: 1rem;
+        color: var(--link-color);
+        text-decoration: none;
+        transition: color 0.4s ease;
+      }
+      #message {
+        color: red;
+        margin-top: 1rem;
+        height: 1em;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      // Terapkan tema secepat mungkin
+      const savedTheme = localStorage.getItem("theme") || "light";
+      document.documentElement.setAttribute("data-theme", savedTheme);
+    </script>
+    <div class="register-container">
+      <h1>Buat Akun Baru</h1>
+      <form id="register-form">
+        <div>
+          <input type="email" id="email" placeholder="Email Anda" required />
+        </div>
+        <div>
+          <input
+            type="password"
+            id="password"
+            placeholder="Password Baru"
+            required
+          />
+        </div>
+        <div>
+          <input
+            type="password"
+            id="confirm-password"
+            placeholder="Konfirmasi Password"
+            required
+          />
+        </div>
+        <button type="submit">Daftar</button>
+      </form>
+      <p id="message"></p>
+      <a href="login.html">Sudah punya akun? Login di sini</a>
+    </div>
+
+    <!-- Firebase SDK (Software Development Kit) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
+    <!-- Konfigurasi Firebase kita -->
+    <script src="firebase-config.js"></script>
+
+    <script>
+      document
+        .getElementById("register-form")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
+          const confirmPassword =
+            document.getElementById("confirm-password").value;
+          const messageEl = document.getElementById("message");
+
+          messageEl.textContent = ""; // Kosongkan pesan error sebelumnya
+
+          if (password !== confirmPassword) {
+            messageEl.textContent = "Konfirmasi password tidak cocok!";
+            return;
+          }
+
+          // Gunakan Firebase untuk membuat akun baru
+          auth
+            .createUserWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+              // Pendaftaran berhasil
+              messageEl.style.color = "green";
+              messageEl.textContent =
+                "Akun berhasil dibuat! Mengarahkan ke halaman login...";
+              setTimeout(() => {
+                window.location.href = "login.html";
+              }, 2000);
+            })
+            .catch((error) => {
+              // Jika terjadi error
+              messageEl.style.color = "red";
+              if (error.code === "auth/email-already-in-use") {
+                messageEl.textContent = "Email ini sudah terdaftar.";
+              } else if (error.code === "auth/weak-password") {
+                messageEl.textContent =
+                  "Password terlalu lemah (minimal 6 karakter).";
+              } else {
+                messageEl.textContent = "Terjadi kesalahan: " + error.message;
+              }
+            });
+        });
+    </script>
+  </body>
+</html>

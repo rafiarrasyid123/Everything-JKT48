@@ -22,7 +22,9 @@ function checkAuthentication(onLoggedIn) {
         const userDoc = await userDocRef.get();
 
         // Definisikan email admin utama di sini
-        const isAdminEmail = user.email === "Raffz@Everything.com";
+        // Bandingkan dalam huruf kecil untuk menghindari masalah case-sensitivity
+        const isAdminEmail =
+          user.email.toLowerCase() === "raffz@everything.com";
 
         let userData;
 

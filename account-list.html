@@ -114,54 +114,6 @@
     </style>
   </head>
   <body class="is-loading">
-    <!-- Firebase SDK & Config -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="auth.js"></script>
-    <script src="firebase-config.js"></script>
-    <script>
-      applyInitialTheme();
-      checkAuthentication((user, userData) => {
-        document.body.classList.remove("is-loading");
-        setupThemeSwitcher();
-        setupLogoutButton();
-
-        // --- Ambil Daftar Admin dari Firestore ---
-        const listElement = document.getElementById("account-list");
-        if (!listElement) return;
-
-        db.collection("users")
-          .where("role", "==", "admin")
-          .get()
-          .then((snapshot) => {
-            if (snapshot.empty) {
-              listElement.innerHTML =
-                "<li>Tidak ada akun admin yang ditemukan.</li>";
-              return;
-            }
-
-            snapshot.forEach((doc) => {
-              const adminData = doc.data();
-              const listItem = document.createElement("li");
-              const isAdminYou =
-                adminData.email === user.email ? "<strong>(Anda)</strong>" : "";
-              listItem.innerHTML = `
-                <span>Email: ${adminData.email}, Nama: ${
-                adminData.displayName || "Tanpa Nama"
-              } ${isAdminYou}</span>
-              `;
-              listElement.appendChild(listItem);
-            });
-          })
-          .catch((error) => {
-            console.error("Gagal mengambil daftar admin:", error);
-            listElement.innerHTML = `<li>Terjadi error. Periksa konsol (F12) untuk detail. Kemungkinan besar Anda perlu membuat Firestore Index.</li>`;
-          });
-      });
-      protectAdminRoute();
-    </script>
-
     <nav class="nav">
       <a href="index.html">Beranda</a>
       <a href="about.html"> Bio Mikaela </a>
@@ -206,5 +158,54 @@
         ><span>Buka Dasbor Pengguna</span></a
       >
     </div>
+
+    <!-- Firebase SDK & Config -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="auth.js"></script>
+    <script src="firebase-config.js"></script>
+    <script>
+      applyInitialTheme();
+      checkAuthentication((user, userData) => {
+        document.body.classList.remove("is-loading");
+        manageNavLinks(userData); // <-- Tambahkan ini agar menu tetap ada
+        setupThemeSwitcher();
+        setupLogoutButton();
+
+        // --- Ambil Daftar Admin dari Firestore ---
+        const listElement = document.getElementById("account-list");
+        if (!listElement) return;
+
+        db.collection("users")
+          .where("role", "==", "admin")
+          .get()
+          .then((snapshot) => {
+            if (snapshot.empty) {
+              listElement.innerHTML =
+                "<li>Tidak ada akun admin yang ditemukan.</li>";
+              return;
+            }
+
+            snapshot.forEach((doc) => {
+              const adminData = doc.data();
+              const listItem = document.createElement("li");
+              const isAdminYou =
+                adminData.email === user.email ? "<strong>(Anda)</strong>" : "";
+              listItem.innerHTML = `
+                <span>Email: ${adminData.email}, Nama: ${
+                adminData.displayName || "Tanpa Nama"
+              } ${isAdminYou}</span>
+              `;
+              listElement.appendChild(listItem);
+            });
+          })
+          .catch((error) => {
+            console.error("Gagal mengambil daftar admin:", error);
+            listElement.innerHTML = `<li>Terjadi error. Periksa konsol (F12) untuk detail. Kemungkinan besar Anda perlu membuat Firestore Index.</li>`;
+          });
+      });
+      protectAdminRoute();
+    </script>
   </body>
 </html>

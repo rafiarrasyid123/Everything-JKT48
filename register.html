@@ -156,7 +156,8 @@
             .then((userCredential) => {
               // Pendaftaran di Auth berhasil, sekarang buat dokumen di Firestore.
               // Tentukan role saat pendaftaran.
-              const isAdmin = email === "Raffz@Everything.com"; // Hanya email utama yang jadi admin saat daftar
+              // Bandingkan dalam huruf kecil untuk menghindari masalah case-sensitivity
+              const isAdmin = email.toLowerCase() === "raffz@everything.com";
 
               // 'return' di sini penting untuk menyambungkan promise.
               const user = userCredential.user;

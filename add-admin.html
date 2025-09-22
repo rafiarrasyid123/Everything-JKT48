@@ -114,20 +114,6 @@
     </style>
   </head>
   <body class="is-loading">
-    <!-- Pengecekan login dan role admin -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="auth.js"></script>
-    <script src="firebase-config.js"></script>
-    <script>
-      applyInitialTheme();
-      checkAuthentication(() => {
-        document.body.classList.remove("is-loading");
-      });
-      protectAdminRoute();
-    </script>
-
     <div class="admin-container">
       <h1>Tambah Admin Baru</h1>
       <p>
@@ -148,6 +134,23 @@
 
       <a href="index.html">Kembali ke Beranda</a>
     </div>
+
+    <!-- Pengecekan login dan role admin -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="auth.js"></script>
+    <script src="firebase-config.js"></script>
+    <script>
+      applyInitialTheme();
+      checkAuthentication((user, userData) => {
+        document.body.classList.remove("is-loading");
+        manageNavLinks(userData); // <-- Tambahkan ini agar menu tetap ada
+        setupThemeSwitcher();
+        setupLogoutButton();
+      });
+      protectAdminRoute();
+    </script>
     <script>
       document
         .getElementById("add-admin-form")

@@ -168,6 +168,7 @@
                   uid: user.uid,
                   email: user.email,
                   displayName: "", // Username akan diatur di halaman profil
+                  photoURL: "", // URL foto profil, awalnya kosong
                   role: isAdmin ? "admin" : "user", // Set role di sini
                   createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 });

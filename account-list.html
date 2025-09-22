@@ -137,11 +137,10 @@
       <div class="warning">
         <strong>Manajemen Pengguna</strong><br />
         Halaman ini menampilkan semua pengguna yang terdaftar. Anda dapat
-        mengubah peran mereka di sini.
-        <strong>Password tidak ditampilkan</strong> karena disimpan secara
-        terenkripsi. Untuk <strong>menghapus akun</strong>, Anda harus
-        menggunakan tombol "Hapus di Konsol" yang akan membawa Anda ke dasbor
-        Firebase yang aman.
+        mengubah peran mereka di sini. Untuk alasan keamanan,
+        <strong>password tidak dapat ditampilkan</strong>. Sebagai gantinya,
+        <strong>User ID (UID)</strong> unik untuk setiap akun ditampilkan
+        sebagai referensi teknis.
       </div>
       <a
         href="https://console.firebase.google.com/project/everything-c2500/authentication/users"
@@ -203,7 +202,9 @@
                 userData.email === user.email ? " <strong>(Anda)</strong>" : "";
               infoSpan.innerHTML = `Email: ${userData.email}<br>Nama: ${
                 userData.displayName || "Tanpa Nama"
-              }<br>Role: <strong>${userData.role}</strong>${isCurrentUser}`;
+              }<br>Role: <strong>${userData.role}</strong><br>UID: <code>${
+                userData.uid
+              }</code>${isCurrentUser}`;
               listItem.appendChild(infoSpan);
 
               // Tambahkan tombol aksi
@@ -232,14 +233,8 @@
                         .doc(doc.id)
                         .update({ role: "user" })
                         .then(() => {
-                          alert("Peran berhasil diubah.");
-                          // Perbarui tampilan tanpa refresh
-                          infoSpan.innerHTML = `Email: ${
-                            userData.email
-                          }<br>Nama: ${
-                            userData.displayName || "Tanpa Nama"
-                          }<br>Role: <strong>user</strong>${isCurrentUser}`;
-                          demoteButton.remove();
+                          // Muat ulang halaman untuk melihat perubahan
+                          window.location.reload();
                         })
                         .catch((err) =>
                           alert("Gagal mengubah peran: " + err.message)
@@ -264,14 +259,8 @@
                         .doc(doc.id)
                         .update({ role: "admin" })
                         .then(() => {
-                          alert("Peran berhasil diubah.");
-                          // Perbarui tampilan tanpa refresh
-                          infoSpan.innerHTML = `Email: ${
-                            userData.email
-                          }<br>Nama: ${
-                            userData.displayName || "Tanpa Nama"
-                          }<br>Role: <strong>admin</strong>${isCurrentUser}`;
-                          promoteButton.remove();
+                          // Muat ulang halaman untuk melihat perubahan
+                          window.location.reload();
                         })
                         .catch((err) =>
                           alert("Gagal mengubah peran: " + err.message)
@@ -285,22 +274,33 @@
                 const resetButton = document.createElement("button");
                 resetButton.textContent = "Reset Password";
                 resetButton.className = "edit-btn reset-btn";
+                resetButton.title = `Kirim email reset password ke ${userData.email}`;
                 resetButton.addEventListener("click", () => {
                   if (
                     confirm(
                       `Yakin ingin mengirim email reset password ke "${userData.email}"?`
                     )
                   ) {
+                    // Nonaktifkan tombol dan tampilkan status mengirim
+                    resetButton.disabled = true;
+                    resetButton.textContent = "Mengirim...";
+
                     auth
                       .sendPasswordResetEmail(userData.email)
                       .then(() => {
-                        alert(
-                          `Email reset password berhasil dikirim ke ${userData.email}.`
-                        );
+                        // Tampilkan status sukses
+                        resetButton.textContent = "Terkirim!";
+                        // Aktifkan kembali setelah beberapa detik
+                        setTimeout(() => {
+                          resetButton.disabled = false;
+                          resetButton.textContent = "Reset Password";
+                        }, 5000); // Aktif kembali setelah 5 detik
                       })
-                      .catch((err) =>
-                        alert("Gagal mengirim email: " + err.message)
-                      );
+                      .catch((err) => {
+                        alert("Gagal mengirim email: " + err.message);
+                        resetButton.disabled = false;
+                        resetButton.textContent = "Reset Password";
+                      });
                   }
                 });
                 buttonGroup.appendChild(resetButton);

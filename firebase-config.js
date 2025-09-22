@@ -16,4 +16,4 @@ const auth = firebase.auth();
 
 // Di masa depan, Anda akan menambahkan layanan lain di sini:
 const db = firebase.firestore();
-// const storage = firebase.storage();
+const storage = firebase.storage();

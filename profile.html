@@ -83,6 +83,30 @@
       .edit-btn:hover {
         background-color: #0056b3;
       }
+      .profile-input {
+        font-size: 1.5rem;
+        padding: 5px 8px;
+        border: 2px solid var(--input-border-color);
+        border-radius: 5px;
+        text-align: center;
+        max-width: 250px;
+      }
+      .save-btn {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .cancel-btn {
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+      }
       .profile-actions {
         margin-top: 1.5rem;
         border-top: 1px solid var(--border-color);
@@ -135,10 +159,25 @@
     <div class="profile-container">
       <div id="profile-avatar" class="profile-avatar"></div>
       <div class="profile-info">
-        <div class="username-wrapper">
+        <!-- Mode Tampilan -->
+        <div id="view-mode-wrapper" class="username-wrapper">
           <h2 id="profile-username"></h2>
           <button id="edit-username-btn" class="edit-btn">Ubah</button>
         </div>
+        <!-- Mode Edit (tersembunyi) -->
+        <div
+          id="edit-mode-wrapper"
+          class="username-wrapper"
+          style="display: none"
+        >
+          <input type="text" id="edit-username-input" class="profile-input" />
+          <button id="save-username-btn" class="save-btn">Simpan</button>
+          <button id="cancel-edit-btn" class="cancel-btn">Batal</button>
+        </div>
+        <p
+          id="username-error"
+          style="color: red; font-size: 0.9rem; height: 1em"
+        ></p>
         <p id="profile-email"></p>
       </div>
       <div class="profile-actions">
@@ -160,10 +199,14 @@
       </div>
     </div>
 
+    <!-- Input file tersembunyi untuk unggah avatar -->
+    <input type="file" id="avatar-upload" accept="image/*" hidden />
+
     <!-- Firebase SDK & Config -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
     <script src="auth.js"></script>
     <script src="firebase-config.js"></script>
     <script>
@@ -188,6 +231,15 @@
         const changePasswordBtn = document.getElementById(
           "change-password-btn"
         );
+        const viewModeWrapper = document.getElementById("view-mode-wrapper");
+        const editModeWrapper = document.getElementById("edit-mode-wrapper");
+        const editUsernameInput = document.getElementById(
+          "edit-username-input"
+        );
+        const saveUsernameBtn = document.getElementById("save-username-btn");
+        const cancelEditBtn = document.getElementById("cancel-edit-btn");
+        const usernameError = document.getElementById("username-error");
+        const avatarUpload = document.getElementById("avatar-upload");
 
         const displayName =
           userData.displayName || user.displayName || "Tanpa Nama";
@@ -207,48 +259,110 @@
 
         editUsernameBtn.style.display = "inline-block";
 
-        editUsernameBtn.addEventListener("click", () => {
-          const newName = prompt("Masukkan nama tampilan baru:", displayName);
-          if (!newName || newName.trim() === "") {
-            return; // Jangan lakukan apa-apa jika input kosong
+        // --- Logika untuk Unggah Foto Profil ---
+
+        // Saat avatar diklik, buka dialog file
+        profileAvatar.addEventListener("click", () => {
+          avatarUpload.click();
+        });
+
+        // Saat file dipilih
+        avatarUpload.addEventListener("change", async (event) => {
+          const file = event.target.files[0];
+          if (!file) return;
+
+          // Tampilkan status loading di avatar
+          profileAvatar.textContent = "...";
+          profileAvatar.style.backgroundImage = "";
+
+          try {
+            // Buat referensi di Firebase Storage
+            const filePath = `profile_pictures/${user.uid}/${file.name}`;
+            const fileRef = storage.ref(filePath);
+
+            // Unggah file
+            const uploadTask = await fileRef.put(file);
+
+            // Dapatkan URL download
+            const photoURL = await uploadTask.ref.getDownloadURL();
+
+            // Perbarui profil di Auth dan Firestore
+            await user.updateProfile({ photoURL: photoURL });
+            await db.collection("users").doc(user.uid).update({ photoURL: photoURL });
+
+            alert("Foto profil berhasil diperbarui!");
+            window.location.reload();
+          } catch (error) {
+            console.error("Gagal mengunggah foto:", error);
+            alert("Gagal mengunggah foto profil. Periksa konsol (F12) untuk detail.");
+            window.location.reload(); // Muat ulang untuk mengembalikan tampilan
           }
-          if (newName.trim().toLowerCase() === displayName.toLowerCase()) {
-            return; // Jangan lakukan apa-apa jika nama sama
+        });
+
+        // --- Logika untuk Mode Edit ---
+
+        // Saat tombol "Ubah" diklik
+        editUsernameBtn.addEventListener("click", () => {
+          viewModeWrapper.style.display = "none";
+          editModeWrapper.style.display = "flex";
+          editUsernameInput.value = displayName;
+          editUsernameInput.focus();
+          usernameError.textContent = "";
+        });
+
+        // Saat tombol "Batal" diklik
+        cancelEditBtn.addEventListener("click", () => {
+          editModeWrapper.style.display = "none";
+          viewModeWrapper.style.display = "flex";
+        });
+
+        // Saat tombol "Simpan" diklik
+        saveUsernameBtn.addEventListener("click", async () => {
+          const newName = editUsernameInput.value.trim();
+          usernameError.textContent = "";
+
+          if (!newName) {
+            usernameError.textContent = "Username tidak boleh kosong.";
+            return;
+          }
+          if (newName.toLowerCase() === displayName.toLowerCase()) {
+            // Jika tidak ada perubahan, batalkan saja
+            cancelEditBtn.click();
+            return;
           }
 
-          // Cek keunikan username di Firestore
-          db.collection("users")
-            .where("displayName", "==", newName.trim())
-            .get()
-            .then((snapshot) => {
-              if (!snapshot.empty) {
-                alert(
-                  "Username tersebut sudah digunakan. Silakan pilih yang lain."
-                );
-              } else {
-                // Jika unik, lanjutkan proses update
-                // 1. Update profil di Firebase Auth
-                user
-                  .updateProfile({ displayName: newName.trim() })
-                  .then(() => {
-                    // 2. Update dokumen di Firestore
-                    return db.collection("users").doc(user.uid).update({
-                      displayName: newName.trim(),
-                    });
-                  })
-                  .then(() => {
-                    alert("Nama tampilan berhasil diperbarui!");
-                    window.location.reload();
-                  })
-                  .catch((error) => {
-                    alert("Gagal memperbarui nama: " + error.message);
-                  });
-              }
-            })
-            .catch((error) => {
-              console.error("Error checking username uniqueness:", error);
-              alert("Terjadi kesalahan saat memeriksa username.");
-            });
+          saveUsernameBtn.disabled = true;
+          saveUsernameBtn.textContent = "Menyimpan...";
+
+          try {
+            // Cek keunikan username di Firestore
+            const snapshot = await db
+              .collection("users")
+              .where("displayName", "==", newName)
+              .get();
+
+            if (!snapshot.empty) {
+              usernameError.textContent = "Username sudah digunakan.";
+              saveUsernameBtn.disabled = false;
+              saveUsernameBtn.textContent = "Simpan";
+              return;
+            }
+
+            // Jika unik, update Auth dan Firestore
+            await user.updateProfile({ displayName: newName });
+            await db
+              .collection("users")
+              .doc(user.uid)
+              .update({ displayName: newName });
+
+            alert("Nama tampilan berhasil diperbarui!");
+            window.location.reload();
+          } catch (error) {
+            console.error("Error updating username:", error);
+            usernameError.textContent = "Gagal memperbarui nama.";
+            saveUsernameBtn.disabled = false;
+            saveUsernameBtn.textContent = "Simpan";
+          }
         });
 
         // Cek metode login pengguna

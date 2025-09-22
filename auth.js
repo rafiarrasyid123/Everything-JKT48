@@ -45,6 +45,7 @@ function checkAuthentication(onLoggedIn) {
             uid: user.uid,
             email: user.email,
             displayName: user.displayName || "", // Ambil dari profil Google jika ada
+            photoURL: user.photoURL || "", // Ambil dari profil Google jika ada
             role: isAdminEmail ? "admin" : "user", // Set role dengan benar saat pembuatan
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           };

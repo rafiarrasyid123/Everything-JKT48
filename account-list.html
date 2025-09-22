@@ -80,6 +80,11 @@
       .console-link:hover {
         background-color: #ffb300;
       }
+      .reset-btn {
+        background-color: #ffc107;
+        color: #212529;
+      }
+
       .delete-btn {
         background-color: #dc3545;
         color: white;
@@ -134,8 +139,9 @@
         Halaman ini menampilkan semua pengguna yang terdaftar. Anda dapat
         mengubah peran mereka di sini.
         <strong>Password tidak ditampilkan</strong> karena disimpan secara
-        terenkripsi. Jika seorang admin lupa password, mereka dapat menggunakan
-        fitur "Lupa Password" di halaman login.
+        terenkripsi. Untuk <strong>menghapus akun</strong>, silakan gunakan
+        tombol "Buka Dasbor Pengguna" dan hapus akun dari Firebase Console untuk
+        alasan keamanan.
       </div>
       <a
         href="https://console.firebase.google.com/project/everything-c2500/authentication/users"
@@ -274,6 +280,45 @@
                   });
                   buttonGroup.appendChild(promoteButton);
                 }
+
+                // Tombol untuk mereset password
+                const resetButton = document.createElement("button");
+                resetButton.textContent = "Reset Password";
+                resetButton.className = "edit-btn reset-btn";
+                resetButton.addEventListener("click", () => {
+                  if (
+                    confirm(
+                      `Yakin ingin mengirim email reset password ke "${userData.email}"?`
+                    )
+                  ) {
+                    auth
+                      .sendPasswordResetEmail(userData.email)
+                      .then(() => {
+                        alert(
+                          `Email reset password berhasil dikirim ke ${userData.email}.`
+                        );
+                      })
+                      .catch((err) =>
+                        alert("Gagal mengirim email: " + err.message)
+                      );
+                  }
+                });
+                buttonGroup.appendChild(resetButton);
+
+                // Tombol untuk menghapus akun (mengarahkan ke console)
+                const deleteButton = document.createElement("button");
+                deleteButton.textContent = "Hapus";
+                deleteButton.className = "delete-btn";
+                deleteButton.addEventListener("click", () => {
+                  alert(
+                    "Untuk keamanan, hapus akun harus dilakukan dari Firebase Console. Anda akan diarahkan ke sana."
+                  );
+                  window.open(
+                    "https://console.firebase.google.com/project/everything-c2500/authentication/users",
+                    "_blank"
+                  );
+                });
+                buttonGroup.appendChild(deleteButton);
               }
 
               listItem.appendChild(buttonGroup);

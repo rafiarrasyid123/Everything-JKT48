@@ -235,24 +235,38 @@
             });
         });
 
-        changePasswordBtn.addEventListener("click", () => {
-          if (
-            confirm(
-              "Anda akan dikirimi email untuk mereset password. Lanjutkan?"
-            )
-          ) {
-            auth
-              .sendPasswordResetEmail(email)
-              .then(() => {
-                alert(
-                  "Email reset password telah dikirim. Silakan periksa inbox Anda."
+        // Cek metode login pengguna
+        const passwordProvider = user.providerData.find(
+          (provider) => provider.providerId === "password"
+        );
+
+        if (passwordProvider) {
+          // Jika pengguna login dengan email/password, aktifkan fitur ubah password
+          changePasswordBtn.addEventListener("click", () => {
+            if (
+              confirm(
+                "Anda akan dikirimi email untuk mereset password. Lanjutkan?"
+              )
+            ) {
+              auth
+                .sendPasswordResetEmail(email)
+                .then(() => {
+                  alert(
+                    "Email reset password telah dikirim. Silakan periksa inbox Anda."
+                  );
+                })
+                .catch((error) =>
+                  alert("Gagal mengirim email: " + error.message)
                 );
-              })
-              .catch((error) =>
-                alert("Gagal mengirim email: " + error.message)
-              );
-          }
-        });
+            }
+          });
+        } else {
+          // Jika pengguna login via Google atau lainnya, nonaktifkan tombol
+          changePasswordBtn.textContent = "Login via Pihak Ketiga";
+          changePasswordBtn.disabled = true;
+          changePasswordBtn.title =
+            "Password tidak dapat diubah untuk akun yang login via Google atau metode lainnya.";
+        }
       });
     </script>
   </body>

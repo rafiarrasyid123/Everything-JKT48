@@ -89,11 +89,17 @@
       }
     </style>
   </head>
-  <body>
+  <body class="is-loading">
+    <!-- Firebase SDK & Config -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="auth.js"></script>
+    <script src="firebase-config.js"></script>
     <script>
       applyInitialTheme();
-      checkAuthentication();
+      checkAuthentication(() => {
+        document.body.classList.remove("is-loading");
+      });
       protectAdminRoute();
     </script>
 
@@ -111,115 +117,19 @@
 
     <div class="content-container">
       <h1 class="title">Data Akun Terdaftar</h1>
+      <div class="warning">
+        <strong>Fitur Dinonaktifkan:</strong> Menampilkan daftar semua pengguna
+        memerlukan akses admin di sisi server (Backend/Firebase Cloud Functions)
+        dan tidak aman untuk dilakukan dari sisi klien (browser).
+      </div>
       <ul id="account-list"></ul>
     </div>
 
     <script>
-      // Fungsi untuk me-render daftar akun
-      function renderAccountList() {
-        const listElement = document.getElementById("account-list");
-        listElement.innerHTML = ""; // Kosongkan daftar sebelum me-render ulang
-
-        const accounts = JSON.parse(localStorage.getItem("userAccounts")) || [];
-
-        if (accounts.length === 0) {
-          listElement.innerHTML =
-            "<li>Tidak ada akun yang terdaftar di browser ini.</li>";
-          return;
-        }
-
-        accounts.forEach((account) => {
-          const listItem = document.createElement("li");
-
-          const infoSpan = document.createElement("span");
-          const roleText = account.role === "admin" ? "Admin" : "User";
-          infoSpan.textContent = `Username: ${account.username} || Role: ${roleText}`;
-          listItem.appendChild(infoSpan);
-
-          const buttonGroup = document.createElement("div");
-          buttonGroup.className = "button-group";
-
-          if (account.username.toLowerCase() !== "raffz") {
-            const changePasswordButton = document.createElement("button");
-            changePasswordButton.textContent = "Ubah Password";
-            changePasswordButton.className = "edit-btn";
-            changePasswordButton.dataset.username = account.username;
-
-            changePasswordButton.addEventListener("click", function () {
-              const userToChange = this.dataset.username;
-              const newPassword = prompt(
-                `Masukkan password baru untuk "${userToChange}":`
-              );
-
-              if (newPassword && newPassword.trim() !== "") {
-                let currentAccounts =
-                  JSON.parse(localStorage.getItem("userAccounts")) || [];
-                const accountIndex = currentAccounts.findIndex(
-                  (acc) => acc.username === userToChange
-                );
-
-                if (accountIndex > -1) {
-                  currentAccounts[accountIndex].password = newPassword;
-                  localStorage.setItem(
-                    "userAccounts",
-                    JSON.stringify(currentAccounts)
-                  );
-                  alert(
-                    `Password untuk "${userToChange}" telah berhasil diubah.`
-                  );
-                }
-              } else if (newPassword !== null) {
-                alert("Password tidak boleh kosong.");
-              }
-            });
-            buttonGroup.appendChild(changePasswordButton);
-
-            const deleteButton = document.createElement("button");
-            deleteButton.textContent = "Hapus";
-            deleteButton.className = "delete-btn";
-            deleteButton.dataset.username = account.username;
-
-            deleteButton.addEventListener("click", function () {
-              const userToDelete = this.dataset.username;
-              if (
-                confirm(
-                  `Apakah Anda yakin ingin menghapus akun "${userToDelete}"?`
-                )
-              ) {
-                let currentAccounts =
-                  JSON.parse(localStorage.getItem("userAccounts")) || [];
-                const updatedAccounts = currentAccounts.filter(
-                  (acc) => acc.username !== userToDelete
-                );
-                localStorage.setItem(
-                  "userAccounts",
-                  JSON.stringify(updatedAccounts)
-                );
-                // Tidak perlu reload, cukup render ulang daftarnya
-                renderAccountList();
-              }
-            });
-            buttonGroup.appendChild(deleteButton);
-          }
-
-          listItem.appendChild(buttonGroup);
-          listElement.appendChild(listItem);
-        });
-      }
-
       // Render awal dan setup saat halaman dimuat
       document.addEventListener("DOMContentLoaded", function () {
-        renderAccountList();
         setupThemeSwitcher();
         setupLogoutButton();
-      });
-
-      // Dengarkan perubahan pada localStorage dari tab lain
-      window.addEventListener("storage", function (event) {
-        if (event.key === "userAccounts") {
-          // Jika data akun berubah, render ulang daftarnya
-          renderAccountList();
-        }
       });
     </script>
   </body>

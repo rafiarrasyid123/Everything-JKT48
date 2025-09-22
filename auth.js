@@ -14,11 +14,12 @@ function applyInitialTheme() {
  * @param {function} onLoggedIn - A callback function to run if the user is logged in.
  */
 function checkAuthentication(onLoggedIn) {
+  // Menggunakan onAuthStateChanged untuk memantau status login secara real-time
   auth.onAuthStateChanged((user) => {
     if (user) {
       // Pengguna sudah login
       if (onLoggedIn) {
-        onLoggedIn(user);
+        onLoggedIn(user); // Jalankan callback dan kirim data pengguna
       }
     } else {
       // Pengguna tidak login, paksa kembali ke halaman login
@@ -29,16 +30,25 @@ function checkAuthentication(onLoggedIn) {
 }
 
 /**
- * Hides admin-specific navigation links if the current user is not an admin.
+ * Shows or hides admin-specific navigation links based on the logged-in user's email.
+ * @param {object} user - The user object from Firebase Auth.
  */
-function manageNavLinks() {
-  const userRole = localStorage.getItem("userRole");
-  // NOTE: Manajemen role dengan Firebase adalah fitur lanjutan (Custom Claims).
-  // Untuk saat ini, kita akan sembunyikan link admin secara default.
+function manageNavLinks(user) {
+  // GANTI DENGAN EMAIL ADMIN ANDA
+  const ADMIN_EMAIL = "Raffz@Everything.com";
+
   const accountListLink = document.getElementById("account-list-link");
-  if (accountListLink) accountListLink.style.display = "none";
   const addAdminLink = document.getElementById("add-admin-link");
-  if (addAdminLink) addAdminLink.style.display = "none";
+
+  if (user && user.email === ADMIN_EMAIL) {
+    // Jika pengguna adalah admin, tampilkan link
+    if (accountListLink) accountListLink.style.display = "inline";
+    if (addAdminLink) addAdminLink.style.display = "inline";
+  } else {
+    // Jika bukan admin, sembunyikan link
+    if (accountListLink) accountListLink.style.display = "none";
+    if (addAdminLink) addAdminLink.style.display = "none";
+  }
 }
 
 /**
@@ -88,7 +98,14 @@ function setupThemeSwitcher() {
  * This function assumes the user is already logged in.
  */
 function protectAdminRoute() {
-  // NOTE: Fungsi ini tidak lagi valid karena role tidak disimpan di localStorage.
-  // Implementasi role-based access control memerlukan Firebase Cloud Functions.
-  // Untuk sementara, kita bisa memanggil manageNavLinks() untuk menyembunyikan link.
+  // GANTI DENGAN EMAIL ADMIN ANDA
+  const ADMIN_EMAIL = "Raffz@Everything.com";
+
+  auth.onAuthStateChanged((user) => {
+    if (!user || user.email !== ADMIN_EMAIL) {
+      // Jika tidak ada user atau email tidak cocok dengan email admin
+      alert("Anda tidak memiliki hak akses untuk halaman ini.");
+      window.location.replace("index.html");
+    }
+  });
 }

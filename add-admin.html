@@ -90,18 +90,38 @@
       }
     </style>
   </head>
-  <body>
+  <body class="is-loading">
     <!-- Pengecekan login dan role admin -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="auth.js"></script>
+    <script src="firebase-config.js"></script>
     <script>
       applyInitialTheme();
-      checkAuthentication();
+      checkAuthentication(() => {
+        document.body.classList.remove("is-loading");
+      });
       protectAdminRoute();
     </script>
 
     <div class="admin-container">
+      <h1>Tambah Admin Baru</h1>
+      <div
+        class="warning"
+        style="
+          color: #8b0000;
+          background-color: #fff3cd;
+          border: 1px solid #ffeeba;
+          padding: 10px;
+          border-radius: 5px;
+          margin-top: 20px;
+        "
+      >
+        <strong>Fitur Dinonaktifkan:</strong> Menambah admin baru secara aman
+        memerlukan backend (Firebase Cloud Functions) untuk menetapkan peran
+        khusus (Custom Claims).
+      </div>
       <form id="add-admin-form">
-        <h1>Tambah Admin Baru</h1>
         <div>
           <input
             type="text"
@@ -123,39 +143,5 @@
       <p id="message"></p>
       <a href="index.html">Kembali ke Beranda</a>
     </div>
-
-    <script>
-      document
-        .getElementById("add-admin-form")
-        .addEventListener("submit", function (event) {
-          event.preventDefault();
-          const username = document.getElementById("username").value;
-          const password = document.getElementById("password").value;
-          const messageEl = document.getElementById("message");
-
-          if (username.toLowerCase() === "raffz") {
-            messageEl.textContent =
-              'Username "Raffz" sudah menjadi admin utama.';
-            return;
-          }
-
-          let accounts = JSON.parse(localStorage.getItem("userAccounts")) || [];
-          const userExists = accounts.some(
-            (acc) => acc.username.toLowerCase() === username.toLowerCase()
-          );
-
-          if (userExists) {
-            messageEl.textContent = "Username sudah ada. Pilih username lain.";
-            return;
-          }
-
-          accounts.push({ username, password, role: "admin" });
-          localStorage.setItem("userAccounts", JSON.stringify(accounts));
-
-          messageEl.style.color = "green";
-          messageEl.textContent = `Admin "${username}" berhasil ditambahkan!`;
-          document.getElementById("add-admin-form").reset();
-        });
-    </script>
   </body>
 </html>

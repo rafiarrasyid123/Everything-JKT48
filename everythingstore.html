@@ -117,18 +117,19 @@
         const productGrid = document.querySelector(".product-grid");
         productGrid.innerHTML = "<p>Memuat produk...</p>"; // Tampilkan status loading
 
+        // Menggunakan onSnapshot untuk pembaruan real-time
         db.collection("products")
           .orderBy("createdAt", "desc")
-          .get()
-          .then((snapshot) => {
-            if (snapshot.empty) {
-              productGrid.innerHTML = "<p>Belum ada produk yang dijual.</p>";
-              return;
-            }
-            productGrid.innerHTML = ""; // Kosongkan grid sebelum diisi
-            snapshot.forEach((doc) => {
-              const product = doc.data();
-              const productCardHTML = `
+          .onSnapshot(
+            (snapshot) => {
+              if (snapshot.empty) {
+                productGrid.innerHTML = "<p>Belum ada produk yang dijual.</p>";
+                return;
+              }
+              productGrid.innerHTML = ""; // Kosongkan grid setiap kali ada pembaruan
+              snapshot.forEach((doc) => {
+                const product = doc.data();
+                const productCardHTML = `
                 <div class="product-card">
                   <div class="product-image-wrapper">
                     <img src="${product.imageUrl}" alt="${product.name}">
@@ -142,14 +143,16 @@
                   </div>
                 </div>
               `;
-              productGrid.insertAdjacentHTML("beforeend", productCardHTML);
-            });
-          })
-          .catch((error) => {
-            console.error("Error getting products: ", error);
-            productGrid.innerHTML =
-              "<p>Gagal memuat produk. Silakan coba lagi nanti.</p>";
-          });
+                productGrid.insertAdjacentHTML("beforeend", productCardHTML);
+              });
+            },
+            (error) => {
+              // Fungsi ini akan dijalankan jika ada error saat mendengarkan
+              console.error("Error getting real-time products: ", error);
+              productGrid.innerHTML =
+                "<p>Gagal memuat produk. Silakan coba lagi nanti.</p>";
+            }
+          );
       });
     </script>
   </body>

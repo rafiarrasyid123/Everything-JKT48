@@ -64,6 +64,19 @@
         transition: background-color 0.4s ease, color 0.4s ease,
           border-color 0.4s ease;
       }
+      .form-group textarea {
+        width: 100%;
+        padding: 0.75rem;
+        box-sizing: border-box;
+        border: 1px solid var(--input-border-color);
+        border-radius: 5px;
+        background-color: var(--input-bg);
+        color: var(--input-text);
+        min-height: 100px;
+        resize: vertical;
+        transition: background-color 0.4s ease, color 0.4s ease,
+          border-color 0.4s ease;
+      }
       .form-buttons {
         display: flex;
         gap: 10px;
@@ -95,6 +108,10 @@
       }
       .product-item-info h4 {
         margin: 0 0 5px 0;
+      }
+      .product-item-info p {
+        margin: 5px 0 0 0;
+        font-size: 0.9rem;
       }
       .product-item-actions {
         display: flex;
@@ -158,6 +175,17 @@
             <input type="number" id="product-price" required min="0" />
           </div>
           <div class="form-group">
+            <label for="product-stock">Jumlah Stok</label>
+            <input type="number" id="product-stock" required min="0" />
+          </div>
+          <div class="form-group">
+            <label for="product-description">Deskripsi Produk</label>
+            <textarea
+              id="product-description"
+              placeholder="Jelaskan detail produk di sini..."
+            ></textarea>
+          </div>
+          <div class="form-group">
             <label for="product-image">Gambar Produk</label>
             <input type="file" id="product-image" accept="image/*" />
             <small
@@ -209,6 +237,10 @@
         const productIdInput = document.getElementById("product-id");
         const productNameInput = document.getElementById("product-name");
         const productPriceInput = document.getElementById("product-price");
+        const productStockInput = document.getElementById("product-stock");
+        const productDescriptionInput = document.getElementById(
+          "product-description"
+        );
         const productImageInput = document.getElementById("product-image");
         const submitBtn = document.getElementById("submit-btn");
         const cancelEditBtn = document.getElementById("cancel-edit-btn");
@@ -243,7 +275,8 @@
                 <img src="${product.imageUrl}" alt="${product.name}">
                 <div class="product-item-info">
                     <h4>${product.name}</h4>
-                    <p>${formatRupiah(product.price)}</p>
+                    <p>Harga: ${formatRupiah(product.price)}</p>
+                    <p><strong>Stok: ${product.stock}</strong></p>
                 </div>
                 <div class="product-item-actions">
                     <button class="action-btn edit-btn">Edit</button>
@@ -257,6 +290,8 @@
                 productIdInput.value = productId;
                 productNameInput.value = product.name;
                 productPriceInput.value = product.price;
+                productStockInput.value = product.stock;
+                productDescriptionInput.value = product.description || "";
                 submitBtn.textContent = "Update";
                 cancelEditBtn.style.display = "inline-block";
               });
@@ -287,6 +322,8 @@
           e.preventDefault();
           const name = productNameInput.value;
           const price = Number(productPriceInput.value);
+          const stock = Number(productStockInput.value);
+          const description = productDescriptionInput.value;
           const file = productImageInput.files[0];
           const productId = productIdInput.value;
 
@@ -307,7 +344,7 @@
 
             if (isUpdating) {
               const productRef = db.collection("products").doc(productId);
-              const updateData = { name, price };
+              const updateData = { name, price, stock, description };
               if (imageUrl) {
                 const oldDoc = await productRef.get();
                 const oldImageUrl = oldDoc.data().imageUrl;
@@ -330,6 +367,8 @@
               await db.collection("products").add({
                 name,
                 price,
+                stock,
+                description,
                 imageUrl,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
               });

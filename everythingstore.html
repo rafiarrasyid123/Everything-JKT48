@@ -22,7 +22,10 @@
         overflow: hidden;
         text-align: center;
         transition: transform 0.3s ease, box-shadow 0.3s ease,
-          background-color 0.4s ease;
+          background-color 0.4s ease, opacity 0.3s ease;
+        /* Animasi saat muncul */
+        opacity: 0; /* Mulai dari transparan */
+        animation: product-fade-in 0.5s ease-out forwards;
       }
       .product-card:hover {
         transform: translateY(-5px);
@@ -59,7 +62,65 @@
         color: #d83a7c; /* Warna khas tema */
         margin-bottom: 1rem;
       }
+      .product-info .stock {
+        font-size: 0.9rem;
+        color: var(--role-text-color, #666);
+        margin-bottom: 1rem;
+        transition: color 0.4s ease;
+      }
+      .product-info .stock.low {
+        color: #e67e22; /* Oranye untuk stok menipis */
+        font-weight: bold;
+      }
+      .product-info .stock.out-of-stock {
+        color: #e74c3c; /* Merah untuk stok habis */
+        font-weight: bold;
+      }
+      .product-card.out-of-stock {
+        opacity: 0.7;
+      }
+      .product-card.out-of-stock .button {
+        background-color: #95a5a6;
+        cursor: not-allowed;
+      }
       /* Menggunakan kembali class .button dari mikaela.css */
+      a.product-link {
+        text-decoration: none;
+        color: inherit;
+        display: block; /* Membuat link mengisi seluruh area grid */
+      }
+      .search-container {
+        max-width: 600px;
+        margin: 0 auto 2rem auto;
+        padding: 0 1rem;
+      }
+      #search-input {
+        width: 100%;
+        padding: 12px 15px;
+        font-size: 1rem;
+        border-radius: 8px;
+        border: 1px solid var(--input-border-color, #ccc);
+        background-color: var(--input-bg, #fff);
+        color: var(--input-text, #333);
+        box-sizing: border-box;
+        transition: all 0.3s ease;
+      }
+      #search-input:focus {
+        outline: none;
+        border-color: var(--input-focus-border-color, #d83a7c);
+        box-shadow: 0 0 0 3px rgba(216, 58, 124, 0.2);
+      }
+      /* Keyframes untuk animasi produk */
+      @keyframes product-fade-in {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
     </style>
   </head>
   <body class="is-loading">
@@ -92,6 +153,11 @@
 
     <h1 class="title">Everything Store</h1>
 
+    <!-- Kolom Pencarian -->
+    <div class="search-container">
+      <input type="text" id="search-input" placeholder="Cari produk..." />
+    </div>
+
     <main class="product-grid"></main>
 
     <footer class="footer">
@@ -113,41 +179,92 @@
         setupLogoutButton();
         setupMobileMenu();
 
-        // --- Ambil Produk dari Firestore ---
+        // --- Logika Halaman Toko ---
         const productGrid = document.querySelector(".product-grid");
-        productGrid.innerHTML = "<p>Memuat produk...</p>"; // Tampilkan status loading
+        const searchInput = document.getElementById("search-input");
+        let allProducts = []; // Cache untuk menyimpan semua produk
+
+        productGrid.innerHTML = "<p>Memuat produk...</p>";
+
+        // Fungsi untuk merender produk ke dalam grid
+        const renderProducts = (productsToRender) => {
+          if (productsToRender.length === 0) {
+            // Cek apakah ada filter aktif atau memang tidak ada produk sama sekali
+            if (searchInput.value) {
+              productGrid.innerHTML = `<p>Tidak ada produk yang cocok dengan pencarian "${searchInput.value}".</p>`;
+            } else {
+              productGrid.innerHTML = "<p>Belum ada produk yang dijual.</p>";
+            }
+            return;
+          }
+
+          productGrid.innerHTML = ""; // Kosongkan grid
+          productsToRender.forEach((product, index) => {
+            const productName = product.name;
+            const productPrice = `Rp ${product.price.toLocaleString("id-ID")}`;
+            const stock = product.stock;
+
+            // Nomor WhatsApp dan pesan otomatis
+            const whatsAppNumber = "6285175214182";
+            const message = `Halo, saya tertarik untuk membeli produk "${productName}" dengan harga ${productPrice}. Apakah produk ini masih tersedia?`;
+            const encodedMessage = encodeURIComponent(message);
+            const whatsAppLink = `https://wa.me/${whatsAppNumber}?text=${encodedMessage}`;
+
+            let stockHTML = "";
+            let cardClass = "";
+
+            if (stock > 0) {
+              const stockClass = stock <= 5 ? "stock low" : "stock";
+              stockHTML = `<p class="${stockClass}">Sisa stok: ${stock}</p>`;
+            } else {
+              stockHTML = `<p class="stock out-of-stock">Stok Habis</p>`;
+              cardClass = "out-of-stock";
+            }
+
+            const productCardHTML = `
+              <a href="product-detail.html?id=${
+                product.id
+              }" class="product-link" title="Lihat detail ${productName}">
+                <div class="product-card ${cardClass}" style="animation-delay: ${
+              index * 50
+            }ms">
+                  <div class="product-image-wrapper">
+                    <img src="${product.imageUrl}" alt="${productName}">
+                  </div>
+                  <div class="product-info">
+                    <h3>${productName}</h3>
+                    <p class="price">${productPrice}</p>
+                    ${stockHTML}
+                  </div>
+                </div>
+              </a>
+            `;
+            productGrid.insertAdjacentHTML("beforeend", productCardHTML);
+          });
+        };
+
+        // Listener untuk input pencarian
+        searchInput.addEventListener("input", () => {
+          const searchTerm = searchInput.value.toLowerCase().trim();
+          const filteredProducts = allProducts.filter((product) =>
+            product.name.toLowerCase().includes(searchTerm)
+          );
+          renderProducts(filteredProducts);
+        });
 
         // Menggunakan onSnapshot untuk pembaruan real-time
         db.collection("products")
           .orderBy("createdAt", "desc")
           .onSnapshot(
             (snapshot) => {
-              if (snapshot.empty) {
-                productGrid.innerHTML = "<p>Belum ada produk yang dijual.</p>";
-                return;
-              }
-              productGrid.innerHTML = ""; // Kosongkan grid setiap kali ada pembaruan
-              snapshot.forEach((doc) => {
-                const product = doc.data();
-                const productCardHTML = `
-                <div class="product-card">
-                  <div class="product-image-wrapper">
-                    <img src="${product.imageUrl}" alt="${product.name}">
-                  </div>
-                  <div class="product-info">
-                    <h3>${product.name}</h3>
-                    <p class="price">Rp ${product.price.toLocaleString(
-                      "id-ID"
-                    )}</p>
-                    <a href="#" class="button">Beli Sekarang</a>
-                  </div>
-                </div>
-              `;
-                productGrid.insertAdjacentHTML("beforeend", productCardHTML);
+              // Simpan semua produk ke cache lokal
+              allProducts = snapshot.docs.map((doc) => {
+                return { id: doc.id, ...doc.data() };
               });
+              // Panggil fungsi filter dan render dengan memicu event 'input'
+              searchInput.dispatchEvent(new Event("input"));
             },
             (error) => {
-              // Fungsi ini akan dijalankan jika ada error saat mendengarkan
               console.error("Error getting real-time products: ", error);
               productGrid.innerHTML =
                 "<p>Gagal memuat produk. Silakan coba lagi nanti.</p>";

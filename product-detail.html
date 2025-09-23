@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detail Produk</title>
+    <link rel="stylesheet" href="mikaela.css" />
+    <style>
+      /* Style khusus untuk halaman detail produk */
+      .detail-container {
+        max-width: 1000px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background-color: var(--contact-bg-color);
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        transition: background-color 0.4s ease;
+      }
+
+      @media (min-width: 768px) {
+        .detail-container {
+          grid-template-columns: 1fr 1fr;
+          gap: 3rem;
+        }
+      }
+
+      .detail-image-wrapper {
+        width: 100%;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+
+      #detail-image {
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+        display: block;
+      }
+
+      .detail-info h1 {
+        margin-top: 0;
+        font-size: 2.5rem;
+        color: var(--text-color);
+        transition: color 0.4s ease;
+      }
+
+      #detail-price {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: #d83a7c;
+        margin: 1rem 0;
+      }
+
+      #detail-stock {
+        font-size: 1rem;
+        color: var(--role-text-color, #666);
+        margin-bottom: 1.5rem;
+        transition: color 0.4s ease;
+        font-weight: bold;
+      }
+
+      #detail-stock.low {
+        color: #e67e22;
+      }
+
+      #detail-stock.out-of-stock {
+        color: #e74c3c;
+      }
+
+      #detail-description {
+        line-height: 1.6;
+        color: var(--text-color);
+        margin-bottom: 2rem;
+        white-space: pre-wrap; /* Menjaga format paragraf dari textarea */
+      }
+
+      #detail-buy-btn.disabled {
+        background-color: #95a5a6;
+        cursor: not-allowed;
+      }
+
+      .loading-placeholder {
+        background-color: var(--input-border-color);
+        border-radius: 5px;
+        animation: pulse 1.5s infinite ease-in-out;
+      }
+
+      @keyframes pulse {
+        0% {
+          opacity: 0.6;
+        }
+        50% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0.6;
+        }
+      }
+    </style>
+  </head>
+  <body class="is-loading">
+    <button class="hamburger-menu" aria-label="Buka menu">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="overlay"></div>
+
+    <nav class="nav">
+      <a href="index.html">Beranda</a>
+      <a href="about.html"> Bio Mikaela </a>
+      <a href="everything.html"> Everything </a>
+      <a href="everythingstore.html">Store</a>
+      <a href="List.html"> Saluran Everything JKT48 </a>
+      <a href="profile.html">Profil</a>
+      <a href="account-list.html" id="account-list-link" style="display: none"
+        >Data Akun</a
+      >
+      <a href="add-admin.html" id="add-admin-link" style="display: none"
+        >Tambah Admin</a
+      >
+      <a href="manage-store.html" id="manage-store-link" style="display: none"
+        >Kelola Toko</a
+      >
+      <a href="#" id="theme-toggle-btn">Mode Gelap</a>
+      <a href="#" id="logout-btn">Logout</a>
+    </nav>
+
+    <main id="detail-container" class="detail-container" style="display: none">
+      <div class="detail-image-wrapper">
+        <img id="detail-image" src="" alt="Gambar Produk" />
+      </div>
+      <div class="detail-info">
+        <h1 id="detail-name"></h1>
+        <p id="detail-price"></p>
+        <p id="detail-stock"></p>
+        <p id="detail-description"></p>
+        <a id="detail-buy-btn" class="button" target="_blank">Beli Sekarang</a>
+      </div>
+    </main>
+    <div id="message-container" style="text-align: center"></div>
+
+    <footer class="footer">
+      <p>&copy; 2024 Raffz. All rights reserved.</p>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="auth.js"></script>
+    <script src="firebase-config.js"></script>
+    <script>
+      applyInitialTheme();
+      checkAuthentication((user, userData) => {
+        document.body.classList.remove("is-loading");
+        manageNavLinks(userData);
+        setupThemeSwitcher();
+        setupLogoutButton();
+        setupMobileMenu();
+
+        const detailContainer = document.getElementById("detail-container");
+        const messageContainer = document.getElementById("message-container");
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get("id");
+
+        if (!productId) {
+          messageContainer.innerHTML =
+            "<h2>Error: ID Produk tidak ditemukan.</h2><a href='everythingstore.html' class='button'>Kembali ke Toko</a>";
+          return;
+        }
+
+        messageContainer.innerHTML = "<p>Memuat detail produk...</p>";
+
+        const productRef = db.collection("products").doc(productId);
+
+        productRef
+          .get()
+          .then((doc) => {
+            if (doc.exists) {
+              const product = doc.data();
+              messageContainer.innerHTML = "";
+              detailContainer.style.display = "grid";
+
+              document.title = product.name + " - Everything Store";
+              document.getElementById("detail-image").src = product.imageUrl;
+              document.getElementById("detail-image").alt = product.name;
+              document.getElementById("detail-name").textContent = product.name;
+              document.getElementById(
+                "detail-price"
+              ).textContent = `Rp ${product.price.toLocaleString("id-ID")}`;
+              document.getElementById("detail-description").textContent =
+                product.description || "Tidak ada deskripsi untuk produk ini.";
+
+              const stockEl = document.getElementById("detail-stock");
+              const buyBtn = document.getElementById("detail-buy-btn");
+
+              if (product.stock > 0) {
+                stockEl.textContent = `Sisa stok: ${product.stock}`;
+                if (product.stock <= 5) stockEl.classList.add("low");
+
+                const whatsAppNumber = "6285175214182";
+                const message = `Halo, saya tertarik untuk membeli produk "${
+                  product.name
+                }" dengan harga Rp ${product.price.toLocaleString(
+                  "id-ID"
+                )}. Apakah produk ini masih tersedia?`;
+                buyBtn.href = `https://wa.me/${whatsAppNumber}?text=${encodeURIComponent(
+                  message
+                )}`;
+              } else {
+                stockEl.textContent = "Stok Habis";
+                stockEl.classList.add("out-of-stock");
+                buyBtn.textContent = "Stok Habis";
+                buyBtn.classList.add("disabled");
+                buyBtn.removeAttribute("href");
+              }
+            } else {
+              messageContainer.innerHTML =
+                "<h2>Error: Produk tidak ditemukan.</h2><a href='everythingstore.html' class='button'>Kembali ke Toko</a>";
+            }
+          })
+          .catch((error) => {
+            console.error("Error getting product details:", error);
+            messageContainer.innerHTML =
+              "<h2>Terjadi kesalahan saat memuat produk.</h2>";
+          });
+      });
+    </script>
+  </body>
+</html>

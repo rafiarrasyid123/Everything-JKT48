@@ -216,6 +216,9 @@
       <p>&copy; 2024 Raffz. All rights reserved.</p>
     </footer>
 
+    <!-- Pustaka untuk kompresi gambar di sisi klien -->
+    <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
+
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -252,26 +255,26 @@
             minimumFractionDigits: 0,
           }).format(number);
 
-        const fetchProducts = async () => {
+        // Menggunakan onSnapshot untuk pembaruan real-time di halaman admin
+        const setupRealtimeProductListener = () => {
           productList.innerHTML = "<p>Memuat produk...</p>";
-          try {
-            const snapshot = await db
-              .collection("products")
-              .orderBy("createdAt", "desc")
-              .get();
-            if (snapshot.empty) {
-              productList.innerHTML = "<p>Belum ada produk.</p>";
-              return;
-            }
+          db.collection("products")
+            .orderBy("createdAt", "desc")
+            .onSnapshot(
+              (snapshot) => {
+                if (snapshot.empty) {
+                  productList.innerHTML = "<p>Belum ada produk.</p>";
+                  return;
+                }
 
-            productList.innerHTML = "";
-            snapshot.forEach((doc) => {
-              const product = doc.data();
-              const productId = doc.id;
+                productList.innerHTML = "";
+                snapshot.forEach((doc) => {
+                  const product = doc.data();
+                  const productId = doc.id;
 
-              const item = document.createElement("div");
-              item.className = "product-item";
-              item.innerHTML = `
+                  const item = document.createElement("div");
+                  item.className = "product-item";
+                  item.innerHTML = `
                 <img src="${product.imageUrl}" alt="${product.name}">
                 <div class="product-item-info">
                     <h4>${product.name}</h4>
@@ -284,30 +287,35 @@
                 </div>
             `;
 
-              item.querySelector(".edit-btn").addEventListener("click", () => {
-                window.scrollTo({ top: 0, behavior: "smooth" });
-                formTitle.textContent = "Edit Produk";
-                productIdInput.value = productId;
-                productNameInput.value = product.name;
-                productPriceInput.value = product.price;
-                productStockInput.value = product.stock;
-                productDescriptionInput.value = product.description || "";
-                submitBtn.textContent = "Update";
-                cancelEditBtn.style.display = "inline-block";
-              });
+                  item
+                    .querySelector(".edit-btn")
+                    .addEventListener("click", () => {
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                      formTitle.textContent = "Edit Produk";
+                      productIdInput.value = productId;
+                      productNameInput.value = product.name;
+                      productPriceInput.value = product.price;
+                      productStockInput.value = product.stock;
+                      productDescriptionInput.value = product.description || "";
+                      submitBtn.textContent = "Update";
+                      cancelEditBtn.style.display = "inline-block";
+                    });
 
-              item
-                .querySelector(".delete-btn")
-                .addEventListener("click", () =>
-                  deleteProduct(productId, product.imageUrl)
-                );
+                  item
+                    .querySelector(".delete-btn")
+                    .addEventListener("click", () =>
+                      deleteProduct(productId, product.imageUrl)
+                    );
 
-              productList.appendChild(item);
-            });
-          } catch (error) {
-            console.error("Error fetching products: ", error);
-            productList.innerHTML = "<p>Gagal memuat produk. Cek konsol.</p>";
-          }
+                  productList.appendChild(item);
+                });
+              },
+              (error) => {
+                console.error("Error listening to products: ", error);
+                productList.innerHTML =
+                  "<p>Gagal memuat produk. Cek konsol.</p>";
+              }
+            );
         };
 
         const resetForm = () => {
@@ -336,9 +344,27 @@
             const isUpdating = !!productId;
 
             if (file) {
-              const filePath = `products/${Date.now()}_${file.name}`;
+              console.log(
+                `Ukuran asli: ${(file.size / 1024 / 1024).toFixed(2)} MB`
+              );
+              const options = {
+                maxSizeMB: 1, // Target ukuran maksimal 1MB
+                maxWidthOrHeight: 1024, // Ukuran sisi terpanjang maksimal 1024px
+                useWebWorker: true, // Gunakan Web Worker agar UI tidak macet
+              };
+
+              const compressedFile = await imageCompression(file, options);
+              console.log(
+                `Ukuran setelah kompresi: ${(
+                  compressedFile.size /
+                  1024 /
+                  1024
+                ).toFixed(2)} MB`
+              );
+
+              const filePath = `products/${Date.now()}_${compressedFile.name}`;
               const fileRef = storage.ref(filePath);
-              const uploadTask = await fileRef.put(file);
+              const uploadTask = await fileRef.put(compressedFile); // Unggah file yang sudah dikompres
               imageUrl = await uploadTask.ref.getDownloadURL();
             }
 
@@ -375,7 +401,6 @@
               alert("Produk baru berhasil ditambahkan!");
             }
             resetForm();
-            fetchProducts();
           } catch (error) {
             console.error("Error saving product: ", error);
             alert("Gagal menyimpan produk. Cek konsol untuk detail.");
@@ -400,7 +425,6 @@
               await storage.refFromURL(imageUrl).delete();
             }
             alert("Produk berhasil dihapus.");
-            fetchProducts();
           } catch (error) {
             console.error("Error deleting product: ", error);
             alert("Gagal menghapus produk. Cek konsol untuk detail.");

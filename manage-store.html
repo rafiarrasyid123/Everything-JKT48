@@ -390,7 +390,10 @@
             } else {
               if (!file) {
                 alert("Gambar produk wajib diisi untuk produk baru.");
-                throw new Error("Image is required for new product.");
+                // Hentikan proses dengan baik, jangan lempar error umum
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalButtonText;
+                return; // Keluar dari fungsi submit
               }
               await db.collection("products").add({
                 name,

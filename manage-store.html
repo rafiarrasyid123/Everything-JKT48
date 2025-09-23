@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kelola Toko - Admin</title>
+    <link rel="stylesheet" href="mikaela.css" />
+    <style>
+      /* Styles untuk konsistensi dengan halaman admin lain */
+      :root,
+      [data-theme="light"] {
+        --container-bg: rgba(255, 255, 255, 0.9);
+        --form-bg: #f9f9f9;
+        --item-bg: #fff;
+        --item-border: #d83a7c;
+        --item-text: #212529;
+      }
+      [data-theme="dark"] {
+        --container-bg: rgba(45, 55, 72, 0.9);
+        --form-bg: #2d3748;
+        --item-bg: #4a5568;
+        --item-border: #ed64a6;
+        --item-text: #e2e8f0;
+      }
+      .content-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background-color: var(--container-bg);
+        border-radius: 10px;
+        transition: background-color 0.4s ease;
+      }
+      .product-form-container {
+        background-color: var(--form-bg);
+        padding: 2rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+        transition: background-color 0.4s ease;
+      }
+      .product-form-container h2 {
+        margin-top: 0;
+        border-bottom: 2px solid var(--item-border);
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.5rem;
+      }
+      .form-group {
+        margin-bottom: 1rem;
+      }
+      .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+      }
+      .form-group input[type="text"],
+      .form-group input[type="number"],
+      .form-group input[type="file"] {
+        width: 100%;
+        padding: 0.75rem;
+        box-sizing: border-box;
+        border: 1px solid var(--input-border-color);
+        border-radius: 5px;
+        background-color: var(--input-bg);
+        color: var(--input-text);
+        transition: background-color 0.4s ease, color 0.4s ease,
+          border-color 0.4s ease;
+      }
+      .form-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 1rem;
+      }
+      .product-list {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+      .product-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background-color: var(--item-bg);
+        padding: 1rem;
+        border-radius: 8px;
+        border-left: 5px solid var(--item-border);
+        transition: background-color 0.4s ease;
+      }
+      .product-item img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 5px;
+      }
+      .product-item-info {
+        flex-grow: 1;
+      }
+      .product-item-info h4 {
+        margin: 0 0 5px 0;
+      }
+      .product-item-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+      .action-btn {
+        padding: 6px 10px;
+        border: none;
+        border-radius: 4px;
+        color: white;
+        cursor: pointer;
+        font-size: 0.9rem;
+      }
+      .edit-btn {
+        background-color: #007bff;
+      }
+      .delete-btn {
+        background-color: #dc3545;
+      }
+    </style>
+  </head>
+  <body class="is-loading">
+    <button class="hamburger-menu" aria-label="Buka menu">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="overlay"></div>
+    <nav class="nav">
+      <a href="index.html">Beranda</a>
+      <a href="about.html"> Bio Mikaela </a>
+      <a href="everything.html">Everything</a>
+      <a href="everythingstore.html">Store</a>
+      <a href="List.html">Saluran Everything JKT48</a>
+      <a href="profile.html">Profil</a>
+      <a href="account-list.html" id="account-list-link" style="display: none"
+        >Data Akun</a
+      >
+      <a href="add-admin.html" id="add-admin-link" style="display: none"
+        >Tambah Admin</a
+      >
+      <a href="manage-store.html" id="manage-store-link" style="display: none"
+        >Kelola Toko</a
+      >
+      <a href="#" id="theme-toggle-btn">Mode Gelap</a>
+      <a href="#" id="logout-btn">Logout</a>
+    </nav>
+
+    <div class="content-container">
+      <h1 class="title">Kelola Produk Toko</h1>
+
+      <div class="product-form-container">
+        <h2 id="form-title">Tambah Produk Baru</h2>
+        <form id="product-form">
+          <input type="hidden" id="product-id" />
+          <div class="form-group">
+            <label for="product-name">Nama Produk</label>
+            <input type="text" id="product-name" required />
+          </div>
+          <div class="form-group">
+            <label for="product-price">Harga (Rp)</label>
+            <input type="number" id="product-price" required min="0" />
+          </div>
+          <div class="form-group">
+            <label for="product-image">Gambar Produk</label>
+            <input type="file" id="product-image" accept="image/*" />
+            <small
+              >Kosongkan jika tidak ingin mengubah gambar saat mengedit.</small
+            >
+          </div>
+          <div class="form-buttons">
+            <button type="submit" class="button" id="submit-btn">Simpan</button>
+            <button
+              type="button"
+              class="button"
+              id="cancel-edit-btn"
+              style="display: none; background-color: #6c757d"
+            >
+              Batal Edit
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <h2>Daftar Produk</h2>
+      <div id="product-list" class="product-list">
+        <p>Memuat produk...</p>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <p>&copy; 2024 Raffz. All rights reserved.</p>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    <script src="auth.js"></script>
+    <script src="firebase-config.js"></script>
+    <script>
+      applyInitialTheme();
+      checkAuthentication((user, userData) => {
+        document.body.classList.remove("is-loading");
+        manageNavLinks(userData);
+        setupThemeSwitcher();
+        setupLogoutButton();
+        setupMobileMenu();
+
+        const productForm = document.getElementById("product-form");
+        const productList = document.getElementById("product-list");
+        const formTitle = document.getElementById("form-title");
+        const productIdInput = document.getElementById("product-id");
+        const productNameInput = document.getElementById("product-name");
+        const productPriceInput = document.getElementById("product-price");
+        const productImageInput = document.getElementById("product-image");
+        const submitBtn = document.getElementById("submit-btn");
+        const cancelEditBtn = document.getElementById("cancel-edit-btn");
+
+        const formatRupiah = (number) =>
+          new Intl.NumberFormat("id-ID", {
+            style: "currency",
+            currency: "IDR",
+            minimumFractionDigits: 0,
+          }).format(number);
+
+        const fetchProducts = async () => {
+          productList.innerHTML = "<p>Memuat produk...</p>";
+          try {
+            const snapshot = await db
+              .collection("products")
+              .orderBy("createdAt", "desc")
+              .get();
+            if (snapshot.empty) {
+              productList.innerHTML = "<p>Belum ada produk.</p>";
+              return;
+            }
+
+            productList.innerHTML = "";
+            snapshot.forEach((doc) => {
+              const product = doc.data();
+              const productId = doc.id;
+
+              const item = document.createElement("div");
+              item.className = "product-item";
+              item.innerHTML = `
+                <img src="${product.imageUrl}" alt="${product.name}">
+                <div class="product-item-info">
+                    <h4>${product.name}</h4>
+                    <p>${formatRupiah(product.price)}</p>
+                </div>
+                <div class="product-item-actions">
+                    <button class="action-btn edit-btn">Edit</button>
+                    <button class="action-btn delete-btn">Hapus</button>
+                </div>
+            `;
+
+              item.querySelector(".edit-btn").addEventListener("click", () => {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+                formTitle.textContent = "Edit Produk";
+                productIdInput.value = productId;
+                productNameInput.value = product.name;
+                productPriceInput.value = product.price;
+                submitBtn.textContent = "Update";
+                cancelEditBtn.style.display = "inline-block";
+              });
+
+              item
+                .querySelector(".delete-btn")
+                .addEventListener("click", () =>
+                  deleteProduct(productId, product.imageUrl)
+                );
+
+              productList.appendChild(item);
+            });
+          } catch (error) {
+            console.error("Error fetching products: ", error);
+            productList.innerHTML = "<p>Gagal memuat produk. Cek konsol.</p>";
+          }
+        };
+
+        const resetForm = () => {
+          productForm.reset();
+          formTitle.textContent = "Tambah Produk Baru";
+          productIdInput.value = "";
+          submitBtn.textContent = "Simpan";
+          cancelEditBtn.style.display = "none";
+        };
+
+        productForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const name = productNameInput.value;
+          const price = Number(productPriceInput.value);
+          const file = productImageInput.files[0];
+          const productId = productIdInput.value;
+
+          submitBtn.disabled = true;
+          const originalButtonText = submitBtn.textContent;
+          submitBtn.textContent = "Menyimpan...";
+
+          try {
+            let imageUrl = "";
+            const isUpdating = !!productId;
+
+            if (file) {
+              const filePath = `products/${Date.now()}_${file.name}`;
+              const fileRef = storage.ref(filePath);
+              const uploadTask = await fileRef.put(file);
+              imageUrl = await uploadTask.ref.getDownloadURL();
+            }
+
+            if (isUpdating) {
+              const productRef = db.collection("products").doc(productId);
+              const updateData = { name, price };
+              if (imageUrl) {
+                const oldDoc = await productRef.get();
+                const oldImageUrl = oldDoc.data().imageUrl;
+                if (oldImageUrl) {
+                  try {
+                    await storage.refFromURL(oldImageUrl).delete();
+                  } catch (storageError) {
+                    console.warn("Gagal hapus gambar lama:", storageError);
+                  }
+                }
+                updateData.imageUrl = imageUrl;
+              }
+              await productRef.update(updateData);
+              alert("Produk berhasil diperbarui!");
+            } else {
+              if (!file) {
+                alert("Gambar produk wajib diisi untuk produk baru.");
+                throw new Error("Image is required for new product.");
+              }
+              await db.collection("products").add({
+                name,
+                price,
+                imageUrl,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+              });
+              alert("Produk baru berhasil ditambahkan!");
+            }
+            resetForm();
+            fetchProducts();
+          } catch (error) {
+            console.error("Error saving product: ", error);
+            alert("Gagal menyimpan produk. Cek konsol untuk detail.");
+          } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalButtonText;
+          }
+        });
+
+        cancelEditBtn.addEventListener("click", resetForm);
+
+        const deleteProduct = async (id, imageUrl) => {
+          if (
+            !confirm(
+              "Apakah Anda yakin ingin menghapus produk ini? Aksi ini tidak dapat dibatalkan."
+            )
+          )
+            return;
+          try {
+            await db.collection("products").doc(id).delete();
+            if (imageUrl) {
+              await storage.refFromURL(imageUrl).delete();
+            }
+            alert("Produk berhasil dihapus.");
+            fetchProducts();
+          } catch (error) {
+            console.error("Error deleting product: ", error);
+            alert("Gagal menghapus produk. Cek konsol untuk detail.");
+          }
+        };
+
+        fetchProducts();
+      });
+      protectAdminRoute();
+    </script>
+  </body>
+</html>

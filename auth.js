@@ -81,15 +81,18 @@ function checkAuthentication(onLoggedIn) {
 function manageNavLinks(userData) {
   const accountListLink = document.getElementById("account-list-link");
   const addAdminLink = document.getElementById("add-admin-link");
+  const manageStoreLink = document.getElementById("manage-store-link");
 
   if (userData && userData.role === "admin") {
     // Jika pengguna adalah admin, tampilkan link
     if (accountListLink) accountListLink.style.display = "inline";
     if (addAdminLink) addAdminLink.style.display = "inline";
+    if (manageStoreLink) manageStoreLink.style.display = "inline";
   } else {
     // Jika bukan admin, sembunyikan link
     if (accountListLink) accountListLink.style.display = "none";
     if (addAdminLink) addAdminLink.style.display = "none";
+    if (manageStoreLink) manageStoreLink.style.display = "none";
   }
 }
 

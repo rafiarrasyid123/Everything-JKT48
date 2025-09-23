@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Everything Store</title>
+    <link rel="stylesheet" href="mikaela.css" />
+    <style>
+      /* Style khusus untuk halaman toko */
+      .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 2rem;
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+      .product-card {
+        background-color: var(--contact-bg-color);
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        text-align: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease,
+          background-color 0.4s ease;
+      }
+      .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      }
+      .product-card .product-image-wrapper {
+        overflow: hidden; /* Memastikan gambar tidak keluar dari border-radius */
+      }
+      .product-card img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        /* Hapus style default dari mikaela.css yang mungkin bentrok */
+        border-radius: 0;
+        box-shadow: none;
+        transition: transform 0.5s ease;
+      }
+      .product-card:hover img {
+        transform: scale(1.05);
+      }
+      .product-info {
+        padding: 1.5rem;
+      }
+      .product-info h3 {
+        margin-top: 0;
+        margin-bottom: 0.5rem;
+        font-size: 1.2rem;
+        color: var(--text-color);
+        transition: color 0.4s ease;
+      }
+      .product-info .price {
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #d83a7c; /* Warna khas tema */
+        margin-bottom: 1rem;
+      }
+      /* Menggunakan kembali class .button dari mikaela.css */
+    </style>
+  </head>
+  <body class="is-loading">
+    <button class="hamburger-menu" aria-label="Buka menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <div class="overlay"></div>
+
+    <nav class="nav">
+      <a href="index.html">Beranda</a>
+      <a href="about.html"> Bio Mikaela </a>
+      <a href="everything.html"> Everything </a>
+      <a href="everythingstore.html">Store</a>
+      <a href="List.html"> Saluran Everything JKT48 </a>
+      <a href="profile.html">Profil</a>
+      <a href="account-list.html" id="account-list-link" style="display: none"
+        >Data Akun</a
+      >
+      <a href="add-admin.html" id="add-admin-link" style="display: none"
+        >Tambah Admin</a
+      >
+      <a href="manage-store.html" id="manage-store-link" style="display: none"
+        >Kelola Toko</a
+      >
+      <a href="#" id="theme-toggle-btn">Mode Gelap</a>
+      <a href="#" id="logout-btn">Logout</a>
+    </nav>
+
+    <h1 class="title">Everything Store</h1>
+
+    <main class="product-grid"></main>
+
+    <footer class="footer">
+      <p>&copy; 2024 Raffz. All rights reserved.</p>
+    </footer>
+
+    <!-- Firebase SDK & Skrip Autentikasi -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="auth.js"></script>
+    <script src="firebase-config.js"></script>
+    <script>
+      applyInitialTheme();
+      checkAuthentication((user, userData) => {
+        document.body.classList.remove("is-loading");
+        manageNavLinks(userData);
+        setupThemeSwitcher();
+        setupLogoutButton();
+        setupMobileMenu();
+
+        // --- Ambil Produk dari Firestore ---
+        const productGrid = document.querySelector(".product-grid");
+        productGrid.innerHTML = "<p>Memuat produk...</p>"; // Tampilkan status loading
+
+        db.collection("products")
+          .orderBy("createdAt", "desc")
+          .get()
+          .then((snapshot) => {
+            if (snapshot.empty) {
+              productGrid.innerHTML = "<p>Belum ada produk yang dijual.</p>";
+              return;
+            }
+            productGrid.innerHTML = ""; // Kosongkan grid sebelum diisi
+            snapshot.forEach((doc) => {
+              const product = doc.data();
+              const productCardHTML = `
+                <div class="product-card">
+                  <div class="product-image-wrapper">
+                    <img src="${product.imageUrl}" alt="${product.name}">
+                  </div>
+                  <div class="product-info">
+                    <h3>${product.name}</h3>
+                    <p class="price">Rp ${product.price.toLocaleString(
+                      "id-ID"
+                    )}</p>
+                    <a href="#" class="button">Beli Sekarang</a>
+                  </div>
+                </div>
+              `;
+              productGrid.insertAdjacentHTML("beforeend", productCardHTML);
+            });
+          })
+          .catch((error) => {
+            console.error("Error getting products: ", error);
+            productGrid.innerHTML =
+              "<p>Gagal memuat produk. Silakan coba lagi nanti.</p>";
+          });
+      });
+    </script>
+  </body>
+</html>

@@ -1,5 +1,0 @@
-- [x] Update index.html to link only to mikaela.css
-- [x] Update about.html to link only to mikaela.css
-- [x] Update Everything.html to link only to mikaela.css
-- [x] Update List.html to link only to mikaela.css
-- Delete common.css, gallery.css, contact.css (optional, after confirmation)

@@ -41,5 +41,19 @@
         <p>Created By Raffz</p>
     </footer>
 
+    <script>
+        const nav = document.querySelector('.nav');
+        let lastScrollY = window.scrollY;
+
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50 && lastScrollY < window.scrollY) {
+                nav.classList.add('nav--hidden');
+            } else {
+                nav.classList.remove('nav--hidden');
+            }
+
+            lastScrollY = window.scrollY;
+        });
+    </script>
 </body> 
 </html>

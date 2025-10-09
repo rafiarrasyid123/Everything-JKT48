@@ -1,0 +1,33 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.wrapper {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.box {
+  width: 200px;
+  aspect-ratio: 1/1;
+  background-color: dodgerblue;
+  animation: spin 1000ms infinite linear forwards;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes spin {
+  from {
+    filter: hue-rotate(0deg);
+    transform: rotate(0deg);
+  }
+  to {
+    filter: hue-rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
